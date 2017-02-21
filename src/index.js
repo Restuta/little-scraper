@@ -1,3 +1,4 @@
-import greeting from 'index.js'
+// uncomment to run example
 
-console.log(greeting)
+import runScraping from './examples/example-scraper'
+runScraping()

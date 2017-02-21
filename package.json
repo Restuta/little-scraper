@@ -33,7 +33,8 @@
     "prepublish": "npm run build",
     "start": "node ./bin/index.js",
     "style": "standard --verbose | snazzy",
-    "style:fix": "standard --fix"
+    "style:fix": "standard --fix",
+    "reinstall": "rimraf node_modules && yarn"
   },
   "repository": {
     "type": "git",
@@ -61,12 +62,13 @@
     "jsverify": "^0.7.4",
     "mocha": "^3.2.0",
     "mocha-webpack": "^0.7.0",
+    "nodemon": "^1.11.0",
+    "rimraf": "^2.6.0",
+    "snazzy": "^6.0.0",
     "source-map-support": "^0.4.11",
     "standard": "^8.6.0",
     "webpack": "^2.2.1",
-    "nodemon": "^1.11.0",
-    "rimraf": "^2.6.0",
-    "snazzy": "^6.0.0"
+    "cheerio": "^0.22.0"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -77,5 +79,10 @@
     ]
   },
   "dependencies": {
+    "bluebird": "^3.4.0",
+    "colors": "^1.0.3",
+    "lodash": "^4.12.0",
+    "moment": "^2.10.6",
+    "request": "^2.48.0"
   }
 }
