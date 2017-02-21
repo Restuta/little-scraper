@@ -1,6 +1,6 @@
 {
   "name": "little-scraper",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "bin": {
     "little-scraper": "./bin/index.js"
@@ -30,7 +30,6 @@
     "test": "cross-env NODE_ENV=TEST mocha-webpack",
     "test:watch": "cross-env NODE_ENV=TEST mocha-webpack --watch",
     "prestart": "npm run clean && npm run build",
-    "prepublish": "npm run build",
     "start": "node ./bin/index.js",
     "style": "standard --verbose | snazzy",
     "style:fix": "standard --fix",
