@@ -24,16 +24,16 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && cross-env NODE_ENV=PROD webpack --progress --colors",
+    "build": "cross-env NODE_ENV=PROD npm run style && webpack --progress --colors",
     "build:watch": "npm run clean && cross-env NODE_ENV=DEV webpack --progress --colors --watch",
     "dev": "nodemon --watch dist ./dist/index.js",
     "test": "cross-env NODE_ENV=TEST mocha-webpack",
     "test:watch": "cross-env NODE_ENV=TEST mocha-webpack --watch",
-    "prestart": "npm run build",
+    "prestart": "npm run clean && npm run build",
     "prepublish": "npm run build",
     "start": "node ./bin/index.js",
-    "style": "standard",
-    "fmt": "standard --fix"
+    "style": "standard --verbose | snazzy",
+    "style:fix": "standard --fix"
   },
   "repository": {
     "type": "git",
@@ -63,7 +63,10 @@
     "mocha-webpack": "^0.7.0",
     "source-map-support": "^0.4.11",
     "standard": "^8.6.0",
-    "webpack": "^2.2.1"
+    "webpack": "^2.2.1",
+    "nodemon": "^1.11.0",
+    "rimraf": "^2.6.0",
+    "snazzy": "^6.0.0"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -74,6 +77,5 @@
     ]
   },
   "dependencies": {
-    "nodemon": "^1.11.0"
   }
 }
