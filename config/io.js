@@ -1,9 +1,9 @@
 'use strict'
 
-const { paths: { src, dist } } = require('./paths')
+const { paths: { project, src, dist } } = require('./paths')
 
 const entry = {
-  index: [src('index')],
+  index: [project('index')],
   lib: [src('lib')]
 }
 

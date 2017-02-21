@@ -3,5 +3,4 @@
 // import runScraping from './examples/example-scraper'
 // runScraping()
 
-
-require('./lib/index.js')
+require('./src/lib/index.js')
