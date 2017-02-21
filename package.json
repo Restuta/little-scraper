@@ -1,0 +1,24 @@
+{
+  "name": "little-scraper",
+  "version": "1.0.0",
+  "description": "Little Node Scraper with simple by powerful async flow control goodness",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Restuta/little-scraper.git"
+  },
+  "keywords": [
+    "node",
+    "nodejs",
+    "scraper"
+  ],
+  "author": "Anton Vynogradenko <restuta8@gmail.com> (http://restuta.me)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Restuta/little-scraper/issues"
+  },
+  "homepage": "https://github.com/Restuta/little-scraper#readme"
+}
