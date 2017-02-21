@@ -3,7 +3,7 @@
 const { paths: { src, dist } } = require('./paths')
 
 const entry = {
-  main: [src('main')],
+  index: [src('index')],
   lib: [src('lib')]
 }
 

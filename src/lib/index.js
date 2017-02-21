@@ -1,1 +1,3 @@
-export { greeting, hello, world } from 'greeting'
+const greeting = 'greeting'
+
+export default greeting

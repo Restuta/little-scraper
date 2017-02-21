@@ -1,1 +1,0 @@
-export { greeting } from './greeting'
