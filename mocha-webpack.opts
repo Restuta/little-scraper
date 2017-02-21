@@ -1,4 +1,0 @@
---colors
---webpack-config webpack.config.js
---require source-map-support/register
-src/**/@(test|*.test|test/*).js

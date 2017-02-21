@@ -7,16 +7,13 @@
   },
   "yarn": "./dist/lib.js",
   "files": [
-    "bin",
-    "config",
     "dist",
-    "src",
+    "src/lib",
+    "index.js",
     ".babelrc",
-    "README.md",
-    "webpack.config.js"
+    "README.md"
   ],
   "directories": {
-    "bin": "./bin",
     "config": "./config",
     "dist": "./dist",
     "src": "./src",
@@ -24,13 +21,12 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "cross-env NODE_ENV=PROD npm run style && webpack --progress --colors",
-    "build:watch": "npm run clean && cross-env NODE_ENV=DEV webpack --progress --colors --watch",
+    "build": "cross-env NODE_ENV=production npm run style && babel src/lib --out-dir dist",
     "dev": "nodemon --watch dist ./dist/index.js",
-    "test": "cross-env NODE_ENV=TEST mocha-webpack",
-    "test:watch": "cross-env NODE_ENV=TEST mocha-webpack --watch",
+    "test": "cross-env NODE_ENV=TEST mocha",
+    "test:watch": "cross-env NODE_ENV=TEST mocha --watch",
     "prestart": "npm run clean && npm run build",
-    "start": "node ./bin/index.js",
+    "start": "node index.js",
     "style": "standard --verbose | snazzy",
     "style:fix": "standard --fix",
     "reinstall": "rimraf node_modules && yarn"
@@ -51,23 +47,22 @@
   },
   "homepage": "https://github.com/Restuta/little-scraper#readme",
   "devDependencies": {
+    "babel-cli": "^6.23.0",
     "babel-core": "^6.22.1",
     "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.10",
     "babel-polyfill": "^6.22.0",
     "babel-preset-env": "^1.1.8",
     "babel-preset-stage-0": "^6.22.0",
+    "cheerio": "^0.22.0",
     "cross-env": "^3.1.4",
     "jsverify": "^0.7.4",
     "mocha": "^3.2.0",
-    "mocha-webpack": "^0.7.0",
     "nodemon": "^1.11.0",
     "rimraf": "^2.6.0",
     "snazzy": "^6.0.0",
     "source-map-support": "^0.4.11",
-    "standard": "^8.6.0",
-    "webpack": "^2.2.1",
-    "cheerio": "^0.22.0"
+    "standard": "^8.6.0"
   },
   "standard": {
     "parser": "babel-eslint",

@@ -2,7 +2,6 @@
   "presets": [
     ["env", {
       "targets": { "node": "current" },
-      "modules": false,
       "useBuiltIns": true
     }],
     "stage-0"

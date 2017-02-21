@@ -1,10 +1,10 @@
 import moment from 'moment'
 import _ from 'lodash'
 import Bluebird from 'bluebird'
-import buildRequest from 'build-request'
+import buildRequest from './build-request'
 const request = buildRequest({useCookies: false})
 
-import { appendJsonToFile, writeJsonToFile } from 'file-utils'
+import { appendJsonToFile, writeJsonToFile } from './file-utils'
 import { log } from './console-tools'
 // Bluebird.longStackTraces() //Long stack traces imply a substantial performance penalty, around 4-5x for throughput and 0.5x for latency.
 
