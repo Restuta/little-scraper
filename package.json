@@ -2,9 +2,36 @@
   "name": "little-scraper",
   "version": "1.0.0",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
-  "main": "index.js",
+  "bin": {
+    "little-scraper": "./bin/main.js"
+  },
+  "main": "./dist/lib.js",
+  "files": [
+    "bin",
+    "config",
+    "dist",
+    "src",
+    ".babelrc",
+    "README.md",
+    "webpack.config.js"
+  ],
+  "directories": {
+    "bin": "./bin",
+    "config": "./config",
+    "dist": "./dist",
+    "src": "./src",
+    "lib": "./src/lib"
+  },
   "scripts": {
-    "test": "npm test"
+    "build": "cross-env NODE_ENV=PROD webpack --progress --colors",
+    "build:watch": "cross-env NODE_ENV=DEV webpack --progress --colors --watch --growl",
+    "test": "cross-env NODE_ENV=TEST mocha-webpack",
+    "test:watch": "cross-env NODE_ENV=TEST mocha-webpack --watch --growl",
+    "prestart": "npm run build",
+    "prepublish": "npm run build",
+    "start": "node ./bin/main",
+    "style": "standard",
+    "fmt": "standard --fix"
   },
   "repository": {
     "type": "git",
@@ -20,5 +47,32 @@
   "bugs": {
     "url": "https://github.com/Restuta/little-scraper/issues"
   },
-  "homepage": "https://github.com/Restuta/little-scraper#readme"
+  "homepage": "https://github.com/Restuta/little-scraper#readme",
+  "devDependencies": {
+    "babel-core": "^6.22.1",
+    "babel-eslint": "^7.1.1",
+    "babel-loader": "^6.2.10",
+    "babel-polyfill": "^6.22.0",
+    "babel-preset-env": "^1.1.8",
+    "babel-preset-stage-0": "^6.22.0",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "cross-env": "^3.1.4",
+    "jsverify": "^0.7.4",
+    "mocha": "^3.2.0",
+    "mocha-webpack": "^0.7.0",
+    "source-map-support": "^0.4.11",
+    "standard": "^8.6.0",
+    "webpack": "^2.2.1"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "globals": [
+      "DEV",
+      "PROD",
+      "TEST"
+    ]
+  },
+  "dependencies": {
+
+  }
 }
