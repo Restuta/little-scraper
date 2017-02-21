@@ -1,6 +1,6 @@
 {
   "name": "little-scraper",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "bin": {
     "little-scraper": "./bin/index.js"
