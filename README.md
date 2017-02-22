@@ -80,3 +80,32 @@ runScraping
 
 export default runScraping
 ```
+
+## Scraper Configuration
+```
+{
+  // a function that will be called for every result returned by requesting every url passed to scraper
+  scrapingFunc = (() => []),
+  // default pessimistic delay between scraping function calls
+  delay = 1000,
+
+  // number of times to retry a request if it fails or returns non 200 error code
+  retryAttempts = 3,
+  // default retry delay is double of delay in between requests + one second
+  retryDelay = delay * 2 + 1000,
+  // if response status code is not one of the described below request would be reated as failed
+  successStatusCodes = [200],
+  // would randomize given delay, so it's within [x/2, x*2] range
+  randomizeDelay = true,
+  // 1 equal to sequential
+  concurrency = 1,
+  // default name for file to be used for storing resulting data, this name will also be used for intermediate
+  // files created to chache results if "cacheIntermediateResultsToFile" is set to true
+  fileName = 'tmp',
+  // for long-running scraping processes it's useful to dump results into files so if something fails we don't loose
+  // progress
+  cacheIntermediateResultsToFile = false,
+  writeResultsToFile = false,
+  proxyUrl = ''
+}
+```
