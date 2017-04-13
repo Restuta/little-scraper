@@ -12,7 +12,7 @@ const TIME_STAMP = moment().format('x_MMM-DD-YYYY_hh-mmA')
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
 
 // makes  a request with random user agent property every time to workaround some smart scraper blocking websites
-const requestWithRotatingUserAgent = (url, successStatusCodes, proxyUrl) => {
+const requestWithRotatingUserAgent = (request, url, successStatusCodes, proxyUrl) => {
   const userAgents = [
     'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
@@ -136,13 +136,15 @@ const buildScraper = ({
   // progress
   cacheIntermediateResultsToFile = false,
   writeResultsToFile = false,
-  proxyUrl = ''
+  proxyUrl = '',
+  // external request object, has to conform to standard `request` module interface
+  request = request,
 }) => {
   return urlsWithContext =>
     Bluebird.map(
       urlsWithContext,
       (urlWithContext, index) =>
-        retry(() => requestWithRotatingUserAgent(urlWithContext.url, successStatusCodes, proxyUrl), {
+        retry(() => requestWithRotatingUserAgent(request, urlWithContext.url, successStatusCodes, proxyUrl), {
           max: retryAttempts,
           backoff: retryDelay,
           operationInfo: urlWithContext.url
