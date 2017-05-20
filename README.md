@@ -82,7 +82,7 @@ export default runScraping
 ```
 
 ## Scraper Configuration
-```
+```json
 {
   // a function that will be called for every result returned by requesting every url passed to scraper
   scrapingFunc = (() => []),
