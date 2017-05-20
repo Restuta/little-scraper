@@ -5,7 +5,7 @@
 
 ## How to use
 
-```
+```javascript
 import { log } from 'console-tools'
 
 /* To scrape something you would have to do 3 things:
