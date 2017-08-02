@@ -66,17 +66,11 @@ const scrape = buildScraper({
  cacheIntermediateResultsToFile: false
 })
 
+// now when it's ready lets start crawling, its as simple as
 async function runScraping () {
  const results = await scrape(createUrls())
  log.json(results)
 }
-
-runScraping
-
-// now when it's ready lets start crawling, its as simple as
-// scrape(createUrls()).then(log.json)
-
-// log.info('\n')
 
 export default runScraping
 ```
@@ -93,7 +87,7 @@ export default runScraping
   retryAttempts = 3,
   // default retry delay is double of delay in between requests + one second
   retryDelay = delay * 2 + 1000,
-  // if response status code is not one of the described below request would be reated as failed
+  // if response status code is not one of the described below request would be treated as failed
   successStatusCodes = [200],
   // would randomize given delay, so it's within [x/2, x*2] range
   randomizeDelay = true,
