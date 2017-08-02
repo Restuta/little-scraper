@@ -11,8 +11,8 @@ import { log } from 'console-tools'
 /* To scrape something you would have to do 3 things:
 
 1. Create an array of urls (with optional context) to scrape from
-2. define a scraping function that scrapes results from given HTML page
-3. Configure and run scraper with defined function and crated array of urls
+2. Define a scraping function that scrapes results from given HTML page
+3. Configure and run scraper with defined function and created array of urls
 
 So let's do this.
 */
