@@ -23,8 +23,6 @@
     "clean": "rimraf dist",
     "build": "cross-env NODE_ENV=production npm run style && babel src/lib --out-dir dist",
     "dev": "nodemon --watch dist ./dist/index.js",
-    "test": "cross-env NODE_ENV=TEST mocha",
-    "test:watch": "cross-env NODE_ENV=TEST mocha --watch",
     "prestart": "npm run clean && npm run build",
     "start": "node index.js",
     "style": "standard --verbose | snazzy",
