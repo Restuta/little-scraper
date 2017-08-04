@@ -185,6 +185,7 @@ const buildScraper = ({
       if (writeResultsToFile) {
         return writeJsonToFile(`data/${fileName}.json`, results, {spaces: 2})
           .then(fileName => log.done(`Saved results to "data/${fileName}"`))
+          .then(() => results)
       }
 
       return results
