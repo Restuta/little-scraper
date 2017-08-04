@@ -1,4 +1,5 @@
 import fs from 'fs'
+import prettier from 'prettier'
 
 /* Wrappers for node-fs function that return promises and write JSON to files
 */
@@ -14,6 +15,7 @@ export function writeJsonToFile (file, obj, options = {}) {
 
     try {
       str = JSON.stringify(obj, options ? options.replacer : null, spaces) + '\n'
+      str = prettier.format(str, { parser: 'json' })
     } catch (err) {
       reject(err)
     }
@@ -37,6 +39,7 @@ export function appendJsonToFile (file, obj, options, callback) {
 
     try {
       str = JSON.stringify(obj, options ? options.replacer : null, spaces) + '\n'
+      str = prettier.format(str, { parser: 'json' })
     } catch (err) {
       reject(err)
     }
