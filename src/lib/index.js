@@ -2,7 +2,6 @@ import moment from 'moment'
 import _ from 'lodash'
 import Bluebird from 'bluebird'
 import buildRequest from './build-request'
-const request = buildRequest({useCookies: false})
 
 import { appendJsonToFile, writeJsonToFile } from './file-utils'
 import { log } from './console-tools'
@@ -111,6 +110,8 @@ const retry = (funcToRetry, {max = 10, backoff = 100, operationInfo, retryHookFu
  }
 */
 
+const requestWithoutCookies = buildRequest({useCookies: false})
+
 // returns a function ready to be run to start scraping and writing results into cache
 // function accepts an array of of urls to scrape and would follow given settings
 const buildScraper = ({
@@ -138,7 +139,7 @@ const buildScraper = ({
   writeResultsToFile = false,
   proxyUrl = '',
   // external request object, has to conform to standard `request` module interface
-  request = request,
+  request = requestWithoutCookies
 }) => {
   return urlsWithContext =>
     Bluebird.map(

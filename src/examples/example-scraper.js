@@ -55,15 +55,13 @@ const scrape = buildScraper({
   scrapingFunc: scrapeTopStarredPackagesFromNpm,
   concurrency: 2,
   delay: 1000,
-  cacheIntermediateResultsToFile: false
+  writeResultsToFile: true
 })
 
 async function runScraping () {
   const results = await scrape(createUrls())
   log.json(results)
 }
-
-runScraping
 
 // now when it's ready lets start crawling, its as simple as
 // scrape(createUrls()).then(log.json)
