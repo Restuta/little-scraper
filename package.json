@@ -1,6 +1,6 @@
 {
   "name": "little-scraper",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "bin": {
     "little-scraper": "./bin/index.js"
@@ -22,14 +22,15 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "cross-env NODE_ENV=production npm run style && babel src/lib --out-dir dist",
-    "dev": "nodemon --watch dist ./dist/index.js",
+    "dev": "nodemon index.dev.js --ext js",
     "prestart": "npm run clean && npm run build",
     "start": "node index.js",
     "style": "standard --verbose | snazzy",
     "style:fix": "standard --fix",
     "reinstall": "rimraf node_modules && yarn",
     "release:patch": "npm version patch && git push --all && git push --tags",
-    "release:minor": "npm version minor && git push --all && git push --tags"
+    "release:minor": "npm version minor && git push --all && git push --tags",
+    "publish": "npm run clean && npm run build && npm run np"
   },
   "repository": {
     "type": "git",
@@ -59,6 +60,7 @@
     "jsverify": "^0.7.4",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
+    "np": "^2.16.0",
     "rimraf": "^2.6.0",
     "snazzy": "^6.0.0",
     "source-map-support": "^0.4.11",
@@ -71,6 +73,9 @@
       "PROD",
       "TEST"
     ]
+  },
+  "engines": {
+    "node": ">=6.0.0 <7.0.0"
   },
   "dependencies": {
     "bluebird": "^3.4.0",

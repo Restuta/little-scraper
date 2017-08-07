@@ -2,6 +2,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import Bluebird from 'bluebird'
 import buildRequest from './build-request'
+import retry from './retry'
 
 import { appendJsonToFile, writeJsonToFile } from './file-utils'
 import { log } from './console-tools'
@@ -11,7 +12,7 @@ const TIME_STAMP = moment().format('x_MMM-DD-YYYY_hh-mmA')
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
 
 // makes  a request with random user agent property every time to workaround some smart scraper blocking websites
-const requestWithRotatingUserAgent = (request, url, successStatusCodes, proxyUrl) => {
+const requestWithRotatingUserAgent = ({request, url, successStatusCodes, proxyUrl}) => {
   const userAgents = [
     'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
@@ -44,32 +45,6 @@ const requestWithRotatingUserAgent = (request, url, successStatusCodes, proxyUrl
 
       return response
     })
-}
-
-const retry = (funcToRetry, {max = 10, backoff = 100, operationInfo, retryHookFunc}) => {
-  return new Bluebird.Promise((resolve, reject) => {
-    const attempt = (attemptNo) => {
-      if (attemptNo > 0) {
-        log.warn(`${operationInfo} - retrying, attempt ${attemptNo}/${max}`)
-      }
-
-      funcToRetry(attemptNo)
-        .then(resolve)
-        .catch((err) => {
-          if (attemptNo >= max) {
-            if (max === 0) {
-              log.fail(`${operationInfo} – Failed on very first attempt :(`)
-            } else {
-              log.fail(`${operationInfo} – Failed after ${max} retry attempts :(`)
-            }
-
-            return reject(err)
-          }
-          setTimeout(() => attempt(attemptNo + 1), backoff)
-        })
-    }
-    attempt(0)
-  })
 }
 
 /* returns a Scraping Function that accept an array of objects representing urls to scrape with
@@ -119,11 +94,10 @@ const buildScraper = ({
   scrapingFunc = (() => []),
   // default pessimistic delay between scraping function calls
   delay = 1000,
-
   // number of times to retry a request if it fails or returns non 200 error code
   retryAttempts = 3,
-  // default retry delay is double of delay in between requests + one second
-  retryDelay = delay * 2 + 1000,
+  // default retry delay is triple of delay in between requests + one second
+  retryDelay = delay * 3 + 1000,
   // if response status code is not one of the described below request would be reated as failed
   successStatusCodes = [200],
   // would randomize given delay, so it's within [x/2, x*2] range
@@ -145,11 +119,19 @@ const buildScraper = ({
     Bluebird.map(
       urlsWithContext,
       (urlWithContext, index) =>
-        retry(() => requestWithRotatingUserAgent(request, urlWithContext.url, successStatusCodes, proxyUrl), {
-          max: retryAttempts,
-          backoff: retryDelay,
-          operationInfo: urlWithContext.url
-        })
+        retry(
+          () => requestWithRotatingUserAgent({
+            request,
+            url: urlWithContext.url,
+            successStatusCodes,
+            proxyUrl
+          }),
+          {
+            max: retryAttempts,
+            backoff: retryDelay,
+            operationInfo: urlWithContext.url
+          }
+        )
         .delay(index === 0
           ? 0 // no delay for very first request
           : randomizeDelay ? rnd(delay / 2, delay * 2) : delay)
@@ -157,9 +139,9 @@ const buildScraper = ({
           response: response,
           urlWithContext: urlWithContext
         }))
-        // after we got data from every url we can do something, e.g. append it to file as intermediate result
+        // after we got data from every url we can do something, e.g. append it to file as
+        // intermediate result
         .then(data => {
-          // console.info(data)
           if (cacheIntermediateResultsToFile && data.length > 0) {
             const cacheFileName = `${TIME_STAMP}_${fileName}.json`
             return appendJsonToFile(`data/cache/${cacheFileName}`, data, {spaces: 2})
@@ -170,7 +152,7 @@ const buildScraper = ({
         }),
       {concurrency: concurrency}
     )
-    // combining results into one array
+    // combining results into one array after all async execution is done
     .reduce((results, currentResults) => {
       if (!_.isArray(results)) {
         throw new Error(`Scraping function must return an array, but it didn't. Instead returned value was: "${currentResults}"`)

@@ -1,4 +1,4 @@
-import { log } from 'console-tools'
+import { log } from '../lib/console-tools'
 
 /* To scrape something you would have to do 3 things:
 
@@ -19,7 +19,7 @@ const createUrls = () => {
   // first 5 goole search results
 
   // each page has 36 packages as of Feb 20th 2017, hardcoding paging value for simplicity
-  return ([0, 36, 36 * 2, 36 * 3, 36 * 4]
+  return ([0, 36, 36 * 2, 36 * 3, 36 * 4, 36 * 5, 36 * 6, 36 * 7]
     .map((startFrom, i) => ({
       url: createUrl(startFrom),
       context: {pageNumber: i}
@@ -49,18 +49,17 @@ const scrapeTopStarredPackagesFromNpm = ({response, urlWithContext}) => {
 
 // #3 lets configure scraper and run it
 
-import buildScraper from 'index'
+import buildScraper from '../lib'
 
 const scrape = buildScraper({
   scrapingFunc: scrapeTopStarredPackagesFromNpm,
-  concurrency: 2,
+  concurrency: 1,
   delay: 1000,
-  writeResultsToFile: true
 })
 
 async function runScraping () {
   const results = await scrape(createUrls())
-  log.json(results)
+  // log.json(results)
 }
 
 // now when it's ready lets start crawling, its as simple as
