@@ -35,9 +35,7 @@ import cheerio from 'cheerio' // jQuery-like HTML manipulation
 
 const scrapeTopStarredPackagesFromNpm = ({response, urlWithContext}) => {
   const $ = cheerio.load(response.body)
-
   const $results = $('.package-widget .package-details .name')
-
   const values = $results
     .toArray()
     .map((elem) => $(elem).text())
@@ -54,12 +52,12 @@ import buildScraper from '../lib'
 const scrape = buildScraper({
   scrapingFunc: scrapeTopStarredPackagesFromNpm,
   concurrency: 1,
-  delay: 1000,
+  delay: 100
 })
 
 async function runScraping () {
   const results = await scrape(createUrls())
-  // log.json(results)
+  log.json(results.length)
 }
 
 // now when it's ready lets start crawling, its as simple as
