@@ -1,5 +1,5 @@
 import Bluebird from 'bluebird'
-import { log } from '../lib/console-tools'
+import { log } from './console-tools'
 
 /**
  * Retries given promise
