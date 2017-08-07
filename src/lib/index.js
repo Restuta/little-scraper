@@ -155,14 +155,19 @@ const buildScraper = ({
     // combining results into one array after all async execution is done
     .reduce((results, currentResults) => {
       if (!_.isArray(results)) {
-        throw new Error(`Scraping function must return an array, but it didn't. Instead returned value was: "${currentResults}"`)
+        throw new Error('Scraping function must return an array, but it didn\'t. ' +
+          `Instead returned value was: "${currentResults}"`)
       }
 
       return results.concat(currentResults)
     })
     // write results into file all at once (if corresponding flag is set)
     .then(results => {
-      log.info('Total results: '.grey + results.length.toString().white)
+      if (results) {
+        log.info('Total results: ' + results.length)
+      } else {
+        log.info('Results were null or undefined after scraping.')
+      }
 
       if (writeResultsToFile) {
         return writeJsonToFile(`data/${fileName}.json`, results, {spaces: 2})

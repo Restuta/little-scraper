@@ -24,6 +24,11 @@ const createUrls = () => {
       url: createUrl(startFrom),
       context: {pageNumber: i}
     }))
+    // bad url to test failures
+    .concat([{
+      url: 'https://www.npmjs_bad_url.com',
+      context: {pageNumber: 999999}
+    }])
   )
 }
 
@@ -51,8 +56,8 @@ import buildScraper from '../lib'
 
 const scrape = buildScraper({
   scrapingFunc: scrapeTopStarredPackagesFromNpm,
-  concurrency: 1,
-  delay: 100
+  concurrency: 2,
+  delay: 500
 })
 
 async function runScraping () {
