@@ -14,7 +14,7 @@ const retry = (funcToRetry, {max = 10, backoff = 100, operationInfo}) => {
       if (attemptNo > 0) {
         log.warn(`${operationInfo} - retrying, attempt ${attemptNo}/${max}`)
       }
-      
+
       funcToRetry(attemptNo)
         .then(resolve)
         .catch((err) => {

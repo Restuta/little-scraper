@@ -30,7 +30,7 @@
     "reinstall": "rimraf node_modules && yarn",
     "release:patch": "npm version patch && git push --all && git push --tags",
     "release:minor": "npm version minor && git push --all && git push --tags",
-    "publish": "npm run clean && npm run build && npm run np"
+    "release": "npm run clean && npm run build && np"
   },
   "repository": {
     "type": "git",
