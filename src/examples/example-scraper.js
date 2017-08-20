@@ -50,18 +50,37 @@ const scrapeTopStarredPackagesFromNpm = ({response, urlWithContext}) => {
   return values
 }
 
+const getIpAddress = ({response, urlWithContext}) => {
+  log.done(urlWithContext.url)
+  const ip = response.body
+  return [ ip ]
+}
+
 // #3 lets configure scraper and run it
 
 import buildScraper from '../lib'
+import { uniq } from 'lodash/fp'
 
 const scrape = buildScraper({
-  scrapingFunc: scrapeTopStarredPackagesFromNpm,
-  concurrency: 2,
-  delay: 500
+  scrapingFunc: getIpAddress,
+  concurrency: 10,
+  delay: 100,
+  retryAttempts: 2,
+  proxyUrl: 'http://open.proxymesh.com:31280',
+  // proxyUrl: 'http://us-wa.proxymesh.com:31280',
+  headers: {
+    'X-ProxyMesh-Country': 'RU',
+    // 'Proxy-Authorization': 'Basic ' + new Buffer('restuta8@gmail.com:<pwd>').toString('base64')
+  }
 })
 
 async function runScraping () {
-  const results = await scrape(createUrls())
+  const results = await scrape(
+    Array(30).fill('https://api.ipify.org')
+    .map(x => ({url: x}))
+  )
+
+  log.json(uniq(results))
   log.json(results.length)
 }
 

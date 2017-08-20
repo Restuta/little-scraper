@@ -12,40 +12,42 @@ const TIME_STAMP = moment().format('x_MMM-DD-YYYY_hh-mmA')
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
 
 // makes  a request with random user agent property every time to workaround some smart scraper blocking websites
-const requestWithRotatingUserAgent = ({request, url, successStatusCodes, proxyUrl}) => {
-  const userAgents = [
-    'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36',
-    // 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)', //google bot
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0',
-    'Mozilla/5.0 (X11; OpenBSD amd64; rv:28.0) Gecko/20100101 Firefox/28.0',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
-    'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 7.0; InfoPath.3; .NET CLR 3.1.40767; Trident/6.0; en-IN)',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
-  ]
-  const options = {
-    url: url,
-    headers: {
-      'User-Agent': userAgents[rnd(0, userAgents.length - 1)]
-      // 'Proxy-Authorization': 'Basic ' + new Buffer('restuta8@gmail.com:<pwd>').toString('base64')
-    },
-    proxy: proxyUrl
+const buildRequestWithRotatingUserAgent = ({request, successStatusCodes, proxyUrl, headers}) =>
+  url => {
+    const userAgents = [
+      'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36',
+      // 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)', //google bot
+      'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0',
+      'Mozilla/5.0 (X11; OpenBSD amd64; rv:28.0) Gecko/20100101 Firefox/28.0',
+      'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
+      'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 7.0; InfoPath.3; .NET CLR 3.1.40767; Trident/6.0; en-IN)',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
+    ]
+    const options = {
+      url: url,
+      headers: {
+        'User-Agent': userAgents[rnd(0, userAgents.length - 1)],
+        ...headers
+        // 'Proxy-Authorization': 'Basic ' + new Buffer('restuta8@gmail.com:<pwd>').toString('base64')
+      },
+      proxy: proxyUrl
+    }
+
+    return request(url, options)
+      .then(response => {
+        if (!successStatusCodes.includes(response.statusCode)) {
+          throw new Error(
+            `Request status code was "${response.statusCode}" and is not one of [${successStatusCodes}]`,
+            response
+          )
+        }
+
+        return response
+      })
   }
-
-  return request(url, options)
-    .then(response => {
-      if (!successStatusCodes.includes(response.statusCode)) {
-        throw new Error(
-          `Request status code was "${response.statusCode}" and is not one of [${successStatusCodes}]`,
-          response
-        )
-      }
-
-      return response
-    })
-}
 
 /* returns a Scraping Function that accept an array of objects representing urls to scrape with
  whatever useful context you can think of created while building them and returns array with scraped results
@@ -104,28 +106,31 @@ const buildScraper = ({
   randomizeDelay = true,
   // 1 equal to sequential
   concurrency = 1,
-  // default name for file to be used for storing resulting data, this name will also be used for intermediate
-  // files created to chache results if "cacheIntermediateResultsToFile" is set to true
-  fileName = 'tmp',
   // for long-running scraping processes it's useful to dump results into files so if something fails we don't loose
   // progress
   cacheIntermediateResultsToFile = false,
   writeResultsToFile = false,
+  // default name for file to be used for storing resulting data, this name will also be used for intermediate
+  // files created to chache results if "cacheIntermediateResultsToFile" is set to true
+  fileName = 'tmp',
   proxyUrl = '',
+  headers = {},
   // external request object, has to conform to standard `request` module interface
   request = requestWithoutCookies
 }) => {
+  const requestWithRotatingUserAgent = buildRequestWithRotatingUserAgent({
+    request,
+    successStatusCodes,
+    proxyUrl,
+    headers
+  })
+
   return urlsWithContext =>
     Bluebird.map(
       urlsWithContext,
       (urlWithContext, index) =>
         retry(
-          () => requestWithRotatingUserAgent({
-            request,
-            url: urlWithContext.url,
-            successStatusCodes,
-            proxyUrl
-          }),
+          () => requestWithRotatingUserAgent(urlWithContext.url),
           {
             max: retryAttempts,
             backoff: retryDelay,
@@ -142,7 +147,7 @@ const buildScraper = ({
         // after we got data from every url we can do something, e.g. append it to file as
         // intermediate result
         .then(data => {
-          if (cacheIntermediateResultsToFile && data.length > 0) {
+          if (cacheIntermediateResultsToFile && data && data.length > 0) {
             const cacheFileName = `${TIME_STAMP}_${fileName}.json`
             return appendJsonToFile(`data/cache/${cacheFileName}`, data, {spaces: 2})
               .then(() => data)
