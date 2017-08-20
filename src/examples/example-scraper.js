@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { log } from '../lib/console-tools'
 
 /* To scrape something you would have to do 3 things:
