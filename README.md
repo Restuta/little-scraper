@@ -1,5 +1,5 @@
 # Little Scraper That Could
- Little Node Scraper with simple by powerful async flow control goodness
+ Little Node Scraper with simple but powerful async flow control goodness. Batteries included, so it can cache intermediate results to a file and save to a file as well.
 
  [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
