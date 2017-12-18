@@ -1,10 +1,10 @@
-import fs from 'fs'
-import prettier from 'prettier'
+const fs = require('fs')
+const prettier = require('prettier')
 
 /* Wrappers for node-fs function that return promises and write JSON to files
 */
 
-export function writeJsonToFile (file, obj, options = {}) {
+function writeJsonToFile (file, obj, options = {}) {
   let spaces = typeof options === 'object' && options !== null
     ? 'spaces' in options
     ? options.spaces : this.spaces
@@ -28,7 +28,7 @@ export function writeJsonToFile (file, obj, options = {}) {
   })
 }
 
-export function appendJsonToFile (file, obj, options, callback) {
+function appendJsonToFile (file, obj, options, callback) {
   let spaces = typeof options === 'object' && options !== null
     ? 'spaces' in options
     ? options.spaces : this.spaces
@@ -52,7 +52,7 @@ export function appendJsonToFile (file, obj, options, callback) {
   })
 }
 
-export default {
+module.exports = {
   writeJsonToFile,
   appendJsonToFile
 }
