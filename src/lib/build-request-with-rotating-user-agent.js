@@ -52,7 +52,12 @@ const buildRequestWithRotatingUserAgent = ({
 
   let response
   try {
+    const from = + new Date()
+
     response = await request(url, options)
+
+    const to = + new Date()
+    const requestTookMs = to - from
 
     if (!successStatusCodes.includes(response.statusCode)) {
       throw createHttpError(
@@ -63,7 +68,10 @@ const buildRequestWithRotatingUserAgent = ({
       )
     }
 
-    return response
+    return {
+      ...response,
+      timeToCompleteMs: requestTookMs,
+    }
   } catch (err) {
     throw createHttpErrorFromExisting(options, response, err)
   }
