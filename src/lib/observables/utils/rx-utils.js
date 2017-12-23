@@ -17,6 +17,8 @@ const httpError = ({
   backoffMs = 1000,
   // multiplies backoffMs on attempt number
   exponentialBackoff = false,
+  // callback function
+  onFinalRetryFail = R.identity,
 }) => errorsObservable =>
   // maxRetries + 1 is used so we can get into retry code after last attempt
   // and fail accordingly
@@ -50,8 +52,9 @@ const httpError = ({
         // return Rx.Observable.throw(err)
 
         // can't access this from outside
-        // return Rx.Observable.of(err)
-        //
+        // return Rx.Observable.of('hello')
+
+        onFinalRetryFail()
         return Rx.Observable.empty()
       }
 
