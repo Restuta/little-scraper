@@ -1,9 +1,4 @@
 // TODO: add writing to file (make this separate module?)
-// TODO: make error reporting similar to non Rx scraper
-// TODO: randomize delays
-
-// TODO: aggregation of failed requests with Either Monad (can't do it now since can't figure out
-// how to keep trakc of processed and afailed observables)
 
 const R = require('ramda')
 const Rx = require('rxjs/Rx')
@@ -13,6 +8,7 @@ const { log } = require('../console-tools')
 const { logHttpErrorForObservable } = require('./utils/console-utils')
 const { get } = require('./utils/ramda-utils')
 const { httpError } = require('./utils/rx-utils')
+const { rnd } = require('./utils/rnd')
 
 const buildRequest = require('../build-request')
 const {
@@ -65,22 +61,24 @@ const createScraper = ({
       )
     }
 
+
+    // second parameter is required  in case of generator function
+    // so observable starts, by default it doesn't start when using generator funcitons
+    // withough "take"
     return urlsWithContext
       ? O.from(urlsWithContext)
-      // second parameter is required so observable starts, by default it doesn't start when
-      // using generator funcitons withough "take"
       : O.from(urlsGenerator(), Rx.Scheduler.async)
           .mergeMap(
             ({ url }) =>
               O.of(url)
                 .flatMap(url => httpGet(url))
-                .delay(delay)
+                .delay(randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
                 .retryWhen(
                   httpError({
                     maxRetries: retryAttempts,
                     backoffMs: retryBackoffMs,
                     exponentialBackoff: exponentialRetryBackoff,
-                    onFinalRetryFail: () => failedCount++,
+                    onFinalRetryFail: () => (failedCount += 1),
                   }),
                 ),
             // result selector, defines shape of the observable data passed further
@@ -89,7 +87,10 @@ const createScraper = ({
           )
           .takeWhile(scrapeWhile)
           .do(({ response, urlWithContext }) =>
-            log.done(`[${response.statusCode}] ${urlWithContext.url}`),
+            log.done(
+              `[${response.statusCode}] ${urlWithContext.url}` +
+                ` ${chalk.gray(response.timeToCompleteMs + 'ms')}`,
+            ),
           )
           .map(scrapingFunc)
           .do(() => (successCount += 1))
@@ -103,16 +104,16 @@ const createScraper = ({
 
             return results.concat(currentResults)
           })
+          // side-effects
           .do(results => {
             if (results) {
               const totalCount = successCount + failedCount
 
               console.log(
-                chalk`
-            Total/succeded/failed: {white ${totalCount}} = {green ${successCount}}` +
+                chalk`Total/succeded/failed: {white ${totalCount}} = {green ${successCount}}` +
                   (failedCount === 0
                     ? chalk` + {gray ${failedCount}}`
-                    : chalk` + {rgb(255,20,0) ${failedCount}}`),
+                    : chalk` + {rgb(255,70,0) ${failedCount}}`),
               )
             } else {
               log.info('Results were null or undefined after scraping.')
