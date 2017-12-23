@@ -55,7 +55,7 @@ const buildRequestWithRotatingUserAgent = ({
 
     if (!successStatusCodes.includes(response.statusCode)) {
       throw createHttpError(
-        `Request status code was "${response.statusCode}", but should be one` +
+        `${response.body} \n Request status code was "${response.statusCode}", but should be one` +
           ` of [${successStatusCodes}]`,
         options,
         response
