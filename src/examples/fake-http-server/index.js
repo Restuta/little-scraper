@@ -15,8 +15,9 @@ const sendSometimesFailingResponse = (res, number) => {
 
 app.get('/numbers/:number', (req, res) => {
   const paramsNumber = req.params.number
-  // return sendSometimesFailingResponse(res, paramsNumber)
-  return paramsNumber === '3' ? sendFail(res, paramsNumber) : res.send(paramsNumber)
+  // return res.send(paramsNumber)
+  return sendSometimesFailingResponse(res, paramsNumber)
+  // return paramsNumber === '3' ? sendFail(res, paramsNumber) : res.send(paramsNumber)
 })
 
 const startHttpServer = () =>
