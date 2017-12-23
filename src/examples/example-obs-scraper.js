@@ -35,8 +35,8 @@ const scrape = createScraper({
     const responseBody = response.body
     return responseBody !== '8'
   },
-  concurrency: 2,
-  delay: 500,
+  concurrency: 1,
+  delay: 1000,
   retryAttempts: 2,
   retryBackoffMs: 200,
   // proxyUrl: 'http://open.proxymesh.com:31280',
