@@ -1,6 +1,6 @@
 {
   "name": "little-scraper",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "bin": {
     "little-scraper": "./bin/index.js"
@@ -19,12 +19,10 @@
     "lib": "./src/lib"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production npm run style",
+    "build": "cross-env NODE_ENV=production",
     "dev": "nodemon index.dev.js --ext js",
     "prestart": "npm run build",
     "start": "node index.js",
-    "style": "standard --verbose | snazzy",
-    "style:fix": "standard --fix",
     "reinstall": "rimraf node_modules && yarn",
     "release:patch": "npm version patch && git push --all && git push --tags",
     "release:minor": "npm version minor && git push --all && git push --tags",

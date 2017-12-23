@@ -18,7 +18,7 @@ const httpError = ({
   // multiplies backoffMs on attempt number
   exponentialBackoff = false,
   // callback function
-  onFinalRetryFail = R.identity,
+  onFinalRetryFail = R.identity
 }) => errorsObservable =>
   // maxRetries + 1 is used so we can get into retry code after last attempt
   // and fail accordingly
@@ -27,7 +27,7 @@ const httpError = ({
     .zip(errorsObservable, (i, err) => ({
       attempt: i,
       retryAfterMs: retryAfterGetter(err) || backoffMs,
-      err,
+      err
     }))
     // waiting for "inner" observable before re-trying "outer" one
     // mergeMap is same as flatMap
@@ -41,11 +41,11 @@ const httpError = ({
       if (x.attempt > maxRetries) {
         log.fail(
           `[${get('response.statusCode', err) || ''}] ${get('request.url', err)}` +
-            `, failed after ${totalAttempts} total attempts`,
+            `, failed after ${totalAttempts} total attempts`
         )
         log.error(
           err.stack ||
-            'No stack, logging entire error object instead: \n' + getJSON(err, 1),
+            'No stack, logging entire error object instead: \n' + getJSON(err, 1)
         )
         // using Observable.throw would stop emittion so if multiple observables are
         // in re-try phase that would only throw once
@@ -61,12 +61,12 @@ const httpError = ({
       log.warn(
         `[${get('response.statusCode', err) || ''}] ${get('request.url', err)}` +
           `, failed, attempt ${x.attempt}/${totalAttempts}` +
-          `, retrying after ${retryAfter}ms`,
+          `, retrying after ${retryAfter}ms`
       )
 
       return Rx.Observable.timer(retryAfter)
     })
 
 module.exports = {
-  httpError,
+  httpError
 }
