@@ -50,6 +50,7 @@
     "babel-eslint": "^7.1.1",
     "cheerio": "^0.22.0",
     "cross-env": "^3.1.4",
+    "express": "^4.16.2",
     "jsverify": "^0.7.4",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
@@ -57,7 +58,8 @@
     "rimraf": "^2.6.0",
     "snazzy": "^6.0.0",
     "source-map-support": "^0.4.11",
-    "standard": "^8.6.0"
+    "standard": "^8.6.0",
+    "prettier": "^1.9.2"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -75,7 +77,6 @@
     "chalk": "^2.1.0",
     "lodash": "^4.12.0",
     "moment": "^2.10.6",
-    "prettier": "^1.5.3",
     "ramda": "^0.25.0",
     "request": "^2.48.0",
     "rxjs": "^5.5.4"
