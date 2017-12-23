@@ -5,7 +5,7 @@ const buildRequest = require('./build-request')
 const retry = require('./retry')
 const { rnd } = require('./utils/rnd')
 const {
-  buildRequestWithRotatingUserAgent
+  buildRequestWithRotatingUserAgent,
 } = require('./build-request-with-rotating-user-agent')
 
 const { appendJsonToFile, writeJsonToFile } = require('./file-utils')
@@ -82,13 +82,13 @@ const buildScraper = ({
   proxyUrl = '',
   headers = {},
   // external request object, has to conform to standard `request` module interface
-  request = requestWithoutCookies
+  request = requestWithoutCookies,
 }) => {
   const requestWithRotatingUserAgent = buildRequestWithRotatingUserAgent({
     request,
     successStatusCodes,
     proxyUrl,
-    headers
+    headers,
   })
 
   return urlsWithContext =>
@@ -98,15 +98,15 @@ const buildScraper = ({
         retry(() => requestWithRotatingUserAgent(urlWithContext.url), {
           max: retryAttempts,
           backoff: retryDelay,
-          operationInfo: urlWithContext.url
+          operationInfo: urlWithContext.url,
         })
           .delay(
             index === 0
               ? 0 // no delay for very first request
-              : randomizeDelay ? rnd(delay / 2, delay * 2) : delay
+              : randomizeDelay ? rnd(delay / 2, delay * 2) : delay,
           )
           .then(response =>
-            scrapingFunc({ response: response, urlWithContext: urlWithContext })
+            scrapingFunc({ response: response, urlWithContext: urlWithContext }),
           )
           // after we got data from every url we can do something, e.g. append it to file as
           // intermediate result
@@ -114,20 +114,20 @@ const buildScraper = ({
             if (cacheIntermediateResultsToFile && data && data.length > 0) {
               const cacheFileName = `${TIME_STAMP}_${fileName}.json`
               return appendJsonToFile(`data/cache/${cacheFileName}`, data, {
-                spaces: 2
+                spaces: 2,
               }).then(() => data)
             } else {
               return data
             }
           }),
-      { concurrency: concurrency }
+      { concurrency: concurrency },
     )
       // combining results into one array after all async execution is done
       .reduce((results, currentResults) => {
         if (!_.isArray(results)) {
           throw new Error(
             "Scraping function must return an array, but it didn't. " +
-              `Instead returned value was: "${currentResults}"`
+              `Instead returned value was: "${currentResults}"`,
           )
         }
 
@@ -154,7 +154,7 @@ const buildScraper = ({
           if (err.stack.lines) {
             const newStack = _.map(
               err.stack.lines(),
-              (line, index) => '\t\t' + line.trim()
+              (line, index) => '\t\t' + line.trim(),
             ).join('\n')
 
             log.fail(err.name + ', stack:\n ' + newStack)
