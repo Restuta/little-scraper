@@ -1,11 +1,13 @@
 // TODO: add writing to file (make this separate module?)
 // TODO: make error reporting similar to non Rx scraper
 // TODO: randomize delays
-// // TODO: reporting of failed requests
-// TODO: aggregation of failed requests with Either Monad (can't )
+
+// TODO: aggregation of failed requests with Either Monad (can't do it now since can't figure out
+// how to keep trakc of processed and afailed observables)
 
 const R = require('ramda')
 const Rx = require('rxjs/Rx')
+const chalk = require('chalk')
 
 const { log } = require('../console-tools')
 const { logHttpErrorForObservable } = require('./utils/console-utils')
@@ -14,25 +16,17 @@ const { httpError } = require('./utils/rx-utils')
 
 const buildRequest = require('../build-request')
 const {
-  buildRequestWithRotatingUserAgent
+  buildRequestWithRotatingUserAgent,
 } = require('../build-request-with-rotating-user-agent')
-
-// const { createHttpClient } = require('./utils/http-client')
-//
-// const http = createHttpClient({
-//   baseURL: 'https://api.github.com',
-//   headers: {
-//     Authorization: `token ${config.GITHUB_PERSONAL_ACCESS_TOKEN}`
-//   }
-// })
-
 const requestWithoutCookies = buildRequest({ useCookies: false })
-
 const O = Rx.Observable
 
 const createScraper = ({
   // a function that will be called for every result returned by requesting every url passed to scraper
   scrapingFunc = () => [],
+  // defines when to stop scraping, useful when generator function is used
+  // to produce urls, infinte by default
+  scrapeWhile = request => true,
   createPagedUrl,
   concurrency = 3,
   delay = 1000,
@@ -51,55 +45,48 @@ const createScraper = ({
   successStatusCodes = [200],
   proxyUrl = '',
   headers = {},
-  writeResultsToFile = false
+  writeResultsToFile = false,
 }) => {
   const httpGet = buildRequestWithRotatingUserAgent({
     request,
     successStatusCodes,
     proxyUrl,
-    headers
+    headers,
   })
 
+  let totalCount = 0
+  let successCount = 0
+
   return urlsWithContext =>
-    // urlsWithContext could be an iterator
     O.from(urlsWithContext)
+      .do(() => (totalCount += 1))
       .mergeMap(
-        urlWithContext =>
-          O.of(urlWithContext)
-            .mergeMap(({ url }) => O.fromPromise(httpGet(url)))
+        ({ url }) =>
+          O.of(url)
+            .flatMap(url => httpGet(url))
+            .do(() => (successCount += 1))
             .delay(delay)
             .retryWhen(
               httpError({
                 maxRetries: retryAttempts,
                 backoffMs: retryBackoffMs,
-                exponentialBackoff: exponentialRetryBackoff
-              })
+                exponentialBackoff: exponentialRetryBackoff,
+              }),
             ),
-        // .do(reportOnProgress),
         // result selector, defines shape of the observable data passed further
         (url, response) => ({ response, urlWithContext: url }),
-        concurrency
+        concurrency,
       )
+      .takeWhile(scrapeWhile)
       .do(({ response, urlWithContext }) =>
-        log.done(`[${response.statusCode}] ${urlWithContext.url}`)
+        log.done(`[${response.statusCode}] ${urlWithContext.url}`),
       )
-      // .catch(err => {
-      //   const url = get('request.url', err)
-      //   const response = err.response
-      //   return O.of(({ response, urlWithContext: { url, status: 'fail' } }))
-      // })
-      // .catch(logHttpErrorForObservable)
-      // .do(({urlWithContext}) => console.dir(urlWithContext))
       .map(scrapingFunc)
-      // .map(({ response, urlWithContext }) =>
-      //   scrapingFunc({ response, urlWithContext })
-      // )
-      // .reduce(R.concat, [])
       .reduce((results, currentResults) => {
         if (!Array.isArray(results)) {
           throw new Error(
             "Scraping function must return an array, but it didn't. " +
-              `Instead returned value was: "${currentResults}"`
+              `Instead returned value was: "${currentResults}"`,
           )
         }
 
@@ -107,7 +94,18 @@ const createScraper = ({
       })
       .do(results => {
         if (results) {
-          log.info('Total results: ' + results.length)
+          // TODO: fix calculation when "takeUntill" is used
+          const failedWithRetryCount = totalCount - successCount
+          const failedCount = failedWithRetryCount / (retryAttempts + 1)
+          const trueTotal = successCount + failedCount
+
+          console.log(
+            chalk`
+            Total/succeded/failed: {white ${trueTotal}} = {green ${successCount}}` +
+              (failedCount === 0
+                ? chalk` + {gray ${failedCount}}`
+                : chalk` + {rgb(255,20,0) ${failedCount}}`),
+          )
         } else {
           log.info('Results were null or undefined after scraping.')
         }
@@ -120,7 +118,6 @@ const createScraper = ({
       })
 }
 
-// change to named export
 module.exports = {
-  createScraper
+  createScraper,
 }
