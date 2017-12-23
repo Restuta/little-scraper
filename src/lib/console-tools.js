@@ -77,7 +77,7 @@ const task = function(message) {
 
 const getJSON = function(object, depth = 2) {
   return util.inspect(object, {
-    depth: 2,
+    depth: depth,
     colors: true
   })
 }
