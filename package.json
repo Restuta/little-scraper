@@ -1,6 +1,6 @@
 {
   "name": "little-scraper",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "bin": {
     "little-scraper": "./bin/index.js"
@@ -53,11 +53,11 @@
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
     "np": "^2.16.0",
+    "prettier": "^1.9.2",
     "rimraf": "^2.6.0",
     "snazzy": "^6.0.0",
     "source-map-support": "^0.4.11",
-    "standard": "^8.6.0",
-    "prettier": "^1.9.2"
+    "standard": "^8.6.0"
   },
   "standard": {
     "parser": "babel-eslint",
