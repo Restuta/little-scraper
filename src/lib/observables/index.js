@@ -54,68 +54,77 @@ const createScraper = ({
     headers,
   })
 
-  let totalCount = 0
   let successCount = 0
+  let failedCount = 0
 
-  return urlsWithContext =>
-    O.from(urlsWithContext)
-      .do(() => (totalCount += 1))
-      .mergeMap(
-        ({ url }) =>
-          O.of(url)
-            .flatMap(url => httpGet(url))
-            .do(() => (successCount += 1))
-            .delay(delay)
-            .retryWhen(
-              httpError({
-                maxRetries: retryAttempts,
-                backoffMs: retryBackoffMs,
-                exponentialBackoff: exponentialRetryBackoff,
-              }),
-            ),
-        // result selector, defines shape of the observable data passed further
-        (url, response) => ({ response, urlWithContext: url }),
-        concurrency,
+  return ({ fromUrls: urlsWithContext, fromUrlsGenerator: urlsGenerator }) => {
+    if (urlsGenerator && !scrapeWhile) {
+      throw new Error(
+        '"scrapeWhile" parameter is required when using an url generator function' +
+          'otherwise scraping will not know where to stop and will run forever',
       )
-      .takeWhile(scrapeWhile)
-      .do(({ response, urlWithContext }) =>
-        log.done(`[${response.statusCode}] ${urlWithContext.url}`),
-      )
-      .map(scrapingFunc)
-      .reduce((results, currentResults) => {
-        if (!Array.isArray(results)) {
-          throw new Error(
-            "Scraping function must return an array, but it didn't. " +
-              `Instead returned value was: "${currentResults}"`,
+    }
+
+    return urlsWithContext
+      ? O.from(urlsWithContext)
+      // second parameter is required so observable starts, by default it doesn't start when
+      // using generator funcitons withough "take"
+      : O.from(urlsGenerator(), Rx.Scheduler.async)
+          .mergeMap(
+            ({ url }) =>
+              O.of(url)
+                .flatMap(url => httpGet(url))
+                .delay(delay)
+                .retryWhen(
+                  httpError({
+                    maxRetries: retryAttempts,
+                    backoffMs: retryBackoffMs,
+                    exponentialBackoff: exponentialRetryBackoff,
+                    onFinalRetryFail: () => failedCount++,
+                  }),
+                ),
+            // result selector, defines shape of the observable data passed further
+            (url, response) => ({ response, urlWithContext: url }),
+            concurrency,
           )
-        }
-
-        return results.concat(currentResults)
-      })
-      .do(results => {
-        if (results) {
-          // TODO: fix calculation when "takeUntill" is used
-          const failedWithRetryCount = totalCount - successCount
-          const failedCount = failedWithRetryCount / (retryAttempts + 1)
-          const trueTotal = successCount + failedCount
-
-          console.log(
-            chalk`
-            Total/succeded/failed: {white ${trueTotal}} = {green ${successCount}}` +
-              (failedCount === 0
-                ? chalk` + {gray ${failedCount}}`
-                : chalk` + {rgb(255,20,0) ${failedCount}}`),
+          .takeWhile(scrapeWhile)
+          .do(({ response, urlWithContext }) =>
+            log.done(`[${response.statusCode}] ${urlWithContext.url}`),
           )
-        } else {
-          log.info('Results were null or undefined after scraping.')
-        }
+          .map(scrapingFunc)
+          .do(() => (successCount += 1))
+          .reduce((results, currentResults) => {
+            if (!Array.isArray(results)) {
+              throw new Error(
+                "Scraping function must return an array, but it didn't. " +
+                  `Instead returned value was: "${currentResults}"`,
+              )
+            }
 
-        if (writeResultsToFile) {
-          return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
-            .then(fileName => log.done(`Saved results to "data/${fileName}"`))
-            .then(() => results)
-        }
-      })
+            return results.concat(currentResults)
+          })
+          .do(results => {
+            if (results) {
+              const totalCount = successCount + failedCount
+
+              console.log(
+                chalk`
+            Total/succeded/failed: {white ${totalCount}} = {green ${successCount}}` +
+                  (failedCount === 0
+                    ? chalk` + {gray ${failedCount}}`
+                    : chalk` + {rgb(255,20,0) ${failedCount}}`),
+              )
+            } else {
+              log.info('Results were null or undefined after scraping.')
+            }
+
+            if (writeResultsToFile) {
+              return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
+                .then(fileName => log.done(`Saved results to "data/${fileName}"`))
+                .then(() => results)
+            }
+          })
+  }
 }
 
 module.exports = {
