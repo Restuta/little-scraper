@@ -1,7 +1,15 @@
 const runScraping = require('./example-obs-scraper')
 const Bluebird = require('bluebird')
 
-runScraping()
+const { startHttpServer } = require('./fake-http-server')
+
+async function main() {
+  await startHttpServer()
+  runScraping()
+}
+
+main()
+
 //
 // function *getNextUrl() {
 //   let i = 0
