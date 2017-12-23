@@ -35,7 +35,7 @@ const scrape = createScraper({
     const responseBody = response.body
     return responseBody !== '8'
   },
-  concurrency: 1,
+  concurrency: 2,
   delay: 500,
   retryAttempts: 2,
   retryBackoffMs: 200,
@@ -53,7 +53,21 @@ async function runScraping() {
       .fill('http://localhost:3456/numbers')
       .map((x, i) => ({ url: `${x}/${i + 1}` }))
 
-  await scrape(createUrls(5)).subscribe(results => log.json(results))
+  const generateUrls = function*() {
+    let i = 0
+    while(true) {
+      yield {url: `http://localhost:3456/numbers/${i++}`}
+    }
+  }
+
+  // const iterator = generateUrls()
+  // console.info(iterator.next().value)
+  // console.info(iterator.next().value)
+
+
+
+  // await scrape({fromUrls: createUrls(10)}).subscribe(results => log.json(results))
+  await scrape({fromUrlsGenerator: generateUrls}).subscribe(results => log.json(results))
 
   // const Rx = require('rxjs/Rx')
   // const O = Rx.Observable
@@ -62,6 +76,12 @@ async function runScraping() {
   //   log.debug('HTTP: ' + url)
   //   return buildRequest()(url)
   // }
+  //
+  // O.from(generateUrls())
+  //   .take(10)
+  //   .delay(500)
+  //   .subscribe(x => log.json(x))
+
   //
   // O.from(createUrls(10))
   //   .mergeMap(
