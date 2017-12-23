@@ -1,7 +1,7 @@
 const request = require('request')
 const Bluebird = require('bluebird')
 
-const buildRequest = ({ useCookies = true }) =>
+const buildRequest = ({ useCookies = true } = {}) =>
   Bluebird.promisify(
     request.defaults({
       jar: useCookies,
