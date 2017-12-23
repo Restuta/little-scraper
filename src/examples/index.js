@@ -1,3 +1,30 @@
-import runScraping from './example-scraper'
+const runScraping = require('./example-obs-scraper')
+const Bluebird = require('bluebird')
 
-runScraping()
+const { startHttpServer } = require('./fake-http-server')
+
+async function main() {
+  await startHttpServer()
+  runScraping()
+}
+
+main()
+
+//
+// function *getNextUrl() {
+//   let i = 0
+//   while(i < 100) {
+//   // while(true) {
+//     yield `https://example.com/${++i}`
+//   }
+// }
+//
+// Promise = Bluebird.Promise
+//
+// Bluebird.mapSeries(
+//   getNextUrl(),
+//   (url, index) => Promise.resolve(url).delay(1000).then(console.log),
+//   { concurrency: 1}
+// )
+//
+// import { createScraper }

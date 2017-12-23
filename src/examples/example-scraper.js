@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import { log } from '../lib/console-tools'
+const { log } = require('../lib/console-tools')
 
 /* To scrape something you would have to do 3 things:
 
@@ -38,7 +38,7 @@ const createUrls = () => {
 // Http Response and url with context. It will be called for each url crated above.
 // Let's use cheerio to scrape search result titles from google.
 
-import cheerio from 'cheerio' // jQuery-like HTML manipulation
+const cheerio = require('cheerio') // jQuery-like HTML manipulation
 
 const scrapeTopStarredPackagesFromNpm = ({response, urlWithContext}) => {
   const $ = cheerio.load(response.body)
@@ -60,15 +60,15 @@ const getIpAddress = ({response, urlWithContext}) => {
 
 // #3 lets configure scraper and run it
 
-import buildScraper from '../lib'
-import { uniq } from 'lodash/fp'
+const buildScraper  = require('../lib')
+const { uniq } = require('lodash/fp')
 
 const scrape = buildScraper({
   scrapingFunc: getIpAddress,
   concurrency: 10,
   delay: 100,
   retryAttempts: 2,
-  proxyUrl: 'http://open.proxymesh.com:31280',
+  // proxyUrl: 'http://open.proxymesh.com:31280',
   // proxyUrl: 'http://us-wa.proxymesh.com:31280',
   headers: {
     'X-ProxyMesh-Country': 'RU',
@@ -91,4 +91,4 @@ async function runScraping () {
 
 // log.info('\n')
 
-export default runScraping
+module.exports = runScraping

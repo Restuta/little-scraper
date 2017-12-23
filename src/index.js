@@ -1,3 +1,3 @@
-import littleScraper from 'index'
+const littleScraper = require('index')
 
-export default littleScraper
+module.exports = littleScraper

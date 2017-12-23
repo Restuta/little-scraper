@@ -1,53 +1,19 @@
-import moment from 'moment'
-import _ from 'lodash'
-import Bluebird from 'bluebird'
-import buildRequest from './build-request'
-import retry from './retry'
+const moment = require('moment')
+const _ = require('lodash')
+const Bluebird = require('bluebird')
+const buildRequest = require('./build-request')
+const retry = require('./retry')
+const { rnd } = require('./utils/rnd')
+const {
+  buildRequestWithRotatingUserAgent,
+} = require('./build-request-with-rotating-user-agent')
 
-import { appendJsonToFile, writeJsonToFile } from './file-utils'
-import { log } from './console-tools'
-// Bluebird.longStackTraces() //Long stack traces imply a substantial performance penalty, around 4-5x for throughput and 0.5x for latency.
+const { appendJsonToFile, writeJsonToFile } = require('./file-utils')
+const { log } = require('./console-tools')
+// Bluebird.longStackTraces() //Long stack traces imply a substantial performance penalty,
+// around 4-5x for throughput and 0.5x for latency.
 
 const TIME_STAMP = moment().format('x_MMM-DD-YYYY_hh-mmA')
-const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
-
-// makes  a request with random user agent property every time to workaround some smart scraper blocking websites
-const buildRequestWithRotatingUserAgent = ({request, successStatusCodes, proxyUrl, headers}) =>
-  url => {
-    const userAgents = [
-      'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
-      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36',
-      // 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)', //google bot
-      'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0',
-      'Mozilla/5.0 (X11; OpenBSD amd64; rv:28.0) Gecko/20100101 Firefox/28.0',
-      'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
-      'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 7.0; InfoPath.3; .NET CLR 3.1.40767; Trident/6.0; en-IN)',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
-    ]
-    const options = {
-      url: url,
-      headers: {
-        'User-Agent': userAgents[rnd(0, userAgents.length - 1)],
-        ...headers
-        // 'Proxy-Authorization': 'Basic ' + new Buffer('restuta8@gmail.com:<pwd>').toString('base64')
-      },
-      proxy: proxyUrl
-    }
-
-    return request(url, options)
-      .then(response => {
-        if (!successStatusCodes.includes(response.statusCode)) {
-          throw new Error(
-            `Request status code was "${response.statusCode}" and is not one of [${successStatusCodes}]`,
-            response
-          )
-        }
-
-        return response
-      })
-  }
 
 /* returns a Scraping Function that accept an array of objects representing urls to scrape with
  whatever useful context you can think of created while building them and returns array with scraped results
@@ -87,13 +53,13 @@ const buildRequestWithRotatingUserAgent = ({request, successStatusCodes, proxyUr
  }
 */
 
-const requestWithoutCookies = buildRequest({useCookies: false})
+const requestWithoutCookies = buildRequest({ useCookies: false })
 
 // returns a function ready to be run to start scraping and writing results into cache
 // function accepts an array of of urls to scrape and would follow given settings
 const buildScraper = ({
   // a function that will be called for every result returned by requesting every url passed to scraper
-  scrapingFunc = (() => []),
+  scrapingFunc = () => [],
   // default pessimistic delay between scraping function calls
   delay = 1000,
   // number of times to retry a request if it fails or returns non 200 error code
@@ -116,87 +82,90 @@ const buildScraper = ({
   proxyUrl = '',
   headers = {},
   // external request object, has to conform to standard `request` module interface
-  request = requestWithoutCookies
+  request = requestWithoutCookies,
 }) => {
   const requestWithRotatingUserAgent = buildRequestWithRotatingUserAgent({
     request,
     successStatusCodes,
     proxyUrl,
-    headers
+    headers,
   })
 
   return urlsWithContext =>
     Bluebird.map(
       urlsWithContext,
       (urlWithContext, index) =>
-        retry(
-          () => requestWithRotatingUserAgent(urlWithContext.url),
-          {
-            max: retryAttempts,
-            backoff: retryDelay,
-            operationInfo: urlWithContext.url
-          }
-        )
-        .delay(index === 0
-          ? 0 // no delay for very first request
-          : randomizeDelay ? rnd(delay / 2, delay * 2) : delay)
-        .then(response => scrapingFunc({
-          response: response,
-          urlWithContext: urlWithContext
-        }))
-        // after we got data from every url we can do something, e.g. append it to file as
-        // intermediate result
-        .then(data => {
-          if (cacheIntermediateResultsToFile && data && data.length > 0) {
-            const cacheFileName = `${TIME_STAMP}_${fileName}.json`
-            return appendJsonToFile(`data/cache/${cacheFileName}`, data, {spaces: 2})
-              .then(() => data)
-          } else {
-            return data
-          }
-        }),
-      {concurrency: concurrency}
+        retry(() => requestWithRotatingUserAgent(urlWithContext.url), {
+          max: retryAttempts,
+          backoff: retryDelay,
+          operationInfo: urlWithContext.url,
+        })
+          .delay(
+            index === 0
+              ? 0 // no delay for very first request
+              : randomizeDelay ? rnd(delay / 2, delay * 2) : delay,
+          )
+          .then(response =>
+            scrapingFunc({ response: response, urlWithContext: urlWithContext }),
+          )
+          // after we got data from every url we can do something, e.g. append it to file as
+          // intermediate result
+          .then(data => {
+            if (cacheIntermediateResultsToFile && data && data.length > 0) {
+              const cacheFileName = `${TIME_STAMP}_${fileName}.json`
+              return appendJsonToFile(`data/cache/${cacheFileName}`, data, {
+                spaces: 2,
+              }).then(() => data)
+            } else {
+              return data
+            }
+          }),
+      { concurrency: concurrency },
     )
-    // combining results into one array after all async execution is done
-    .reduce((results, currentResults) => {
-      if (!_.isArray(results)) {
-        throw new Error('Scraping function must return an array, but it didn\'t. ' +
-          `Instead returned value was: "${currentResults}"`)
-      }
-
-      return results.concat(currentResults)
-    })
-    // write results into file all at once (if corresponding flag is set)
-    .then(results => {
-      if (results) {
-        log.info('Total results: ' + results.length)
-      } else {
-        log.info('Results were null or undefined after scraping.')
-      }
-
-      if (writeResultsToFile) {
-        return writeJsonToFile(`data/${fileName}.json`, results, {spaces: 2})
-          .then(fileName => log.done(`Saved results to "data/${fileName}"`))
-          .then(() => results)
-      }
-
-      return results
-    })
-    .catch(err => {
-      if (err.stack) {
-        if (err.stack.lines) {
-          const newStack = _.map(err.stack.lines(), (line, index) => ('\t\t' + line.trim()))
-          .join('\n')
-
-          log.fail(err.name + ', stack:\n ' + newStack)
-        } else {
-          log.fail(err.name + ', stack:\n ' + err.stack)
+      // combining results into one array after all async execution is done
+      .reduce((results, currentResults) => {
+        if (!_.isArray(results)) {
+          throw new Error(
+            "Scraping function must return an array, but it didn't. " +
+              `Instead returned value was: "${currentResults}"`,
+          )
         }
-      } else {
-        log.fail('Something went wrong')
-        log.debug(err)
-      }
-    })
+
+        return results.concat(currentResults)
+      })
+      // write results into file all at once (if corresponding flag is set)
+      .then(results => {
+        if (results) {
+          log.info('Total results: ' + results.length)
+        } else {
+          log.info('Results were null or undefined after scraping.')
+        }
+
+        if (writeResultsToFile) {
+          return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
+            .then(fileName => log.done(`Saved results to "data/${fileName}"`))
+            .then(() => results)
+        }
+
+        return results
+      })
+      .catch(err => {
+        if (err.stack) {
+          if (err.stack.lines) {
+            const newStack = _.map(
+              err.stack.lines(),
+              (line, index) => '\t\t' + line.trim(),
+            ).join('\n')
+
+            log.fail(err.name + ', stack:\n ' + newStack)
+          } else {
+            log.fail(err.name + ', stack:\n ' + err.stack)
+          }
+        } else {
+          log.fail('Something went wrong')
+          log.debug(err)
+        }
+      })
 }
 
-export default buildScraper
+module.exports = buildScraper

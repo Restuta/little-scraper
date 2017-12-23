@@ -1,6 +1,6 @@
 {
   "name": "little-scraper",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "bin": {
     "little-scraper": "./bin/index.js"
@@ -15,22 +15,18 @@
   ],
   "directories": {
     "config": "./config",
-    "dist": "./dist",
     "src": "./src",
     "lib": "./src/lib"
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "build": "cross-env NODE_ENV=production npm run style && babel src/lib --out-dir dist",
+    "build": "cross-env NODE_ENV=production",
     "dev": "nodemon index.dev.js --ext js",
-    "prestart": "npm run clean && npm run build",
+    "prestart": "npm run build",
     "start": "node index.js",
-    "style": "standard --verbose | snazzy",
-    "style:fix": "standard --fix",
     "reinstall": "rimraf node_modules && yarn",
     "release:patch": "npm version patch && git push --all && git push --tags",
     "release:minor": "npm version minor && git push --all && git push --tags",
-    "release": "npm run clean && npm run build && np"
+    "release": "npm run build && np"
   },
   "repository": {
     "type": "git",
@@ -48,15 +44,11 @@
   },
   "homepage": "https://github.com/Restuta/little-scraper#readme",
   "devDependencies": {
-    "babel-cli": "^6.23.0",
     "babel-core": "^6.22.1",
     "babel-eslint": "^7.1.1",
-    "babel-loader": "^6.2.10",
-    "babel-polyfill": "^6.22.0",
-    "babel-preset-env": "^1.1.8",
-    "babel-preset-stage-0": "^6.22.0",
     "cheerio": "^0.22.0",
     "cross-env": "^3.1.4",
+    "express": "^4.16.2",
     "jsverify": "^0.7.4",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
@@ -64,7 +56,8 @@
     "rimraf": "^2.6.0",
     "snazzy": "^6.0.0",
     "source-map-support": "^0.4.11",
-    "standard": "^8.6.0"
+    "standard": "^8.6.0",
+    "prettier": "^1.9.2"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -82,7 +75,8 @@
     "chalk": "^2.1.0",
     "lodash": "^4.12.0",
     "moment": "^2.10.6",
-    "prettier": "^1.5.3",
-    "request": "^2.48.0"
+    "ramda": "^0.25.0",
+    "request": "^2.48.0",
+    "rxjs": "^5.5.4"
   }
 }

@@ -1,11 +1,11 @@
 'use strict'
 
 // this extends string prototype
-import chalk from 'chalk'
+const chalk = require('chalk')
 
-var util = require('util')
+const util = require('util')
 
-var preProcessMessage = function (message) {
+const preProcessMessage = function(message) {
   if (message === undefined) {
     return 'undefined'
   }
@@ -21,63 +21,63 @@ var preProcessMessage = function (message) {
   return message
 }
 
-const info = function (message) {
+const info = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.white(message))
 }
 
 // use to just log an error, where app can continue running, use "fail" to log critical error that
 // blocks execution
-const error = function (message) {
+const error = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.red('× ') + chalk.red(message))
 }
 
-const dataError = function (message) {
+const dataError = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.red('Data Error: ') + chalk.cyan(message))
 }
 
-const debug = function (message) {
+const debug = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.blue(message))
 }
 
-const done = function (message) {
+const done = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.green('\t✓ ') + chalk.white(message))
 }
 
-const doneBut = function (message) {
+const doneBut = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.yellow('\t✓ ') + chalk.grey(message))
 }
 
-const warn = function (message) {
+const warn = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.yellow('\t○ ') + chalk.grey(message))
 }
 
-const fail = function (message) {
+const fail = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.red('\t× ') + chalk.grey(message))
 }
 
-const json = function (object, depth = 2) {
+const json = function(object, depth = 2) {
   const json = getJSON(object, depth)
   console.log(chalk.white(json))
 }
 
-const task = function (message) {
+const task = function(message) {
   message = preProcessMessage(message)
   console.log(chalk.yellow('★ ') + chalk.white(message))
 }
 
 /* utility methods */
 
-const getJSON = function (object, depth = 2) {
+const getJSON = function(object, depth = 2) {
   return util.inspect(object, {
-    depth: 2,
+    depth: depth,
     colors: true
   })
 }
@@ -95,7 +95,4 @@ const log = {
   task
 }
 
-export {
-  log,
-  getJSON
-}
+module.exports = { log, getJSON }

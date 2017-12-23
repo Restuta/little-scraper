@@ -1,9 +1,0 @@
-{
-  "presets": [
-    ["env", {
-      "targets": { "node": "current" },
-      "useBuiltIns": true
-    }],
-    "stage-0"
-  ],
-}
