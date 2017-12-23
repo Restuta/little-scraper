@@ -1,7 +1,7 @@
 const Rx = require('rxjs/Rx')
 const R = require('ramda')
 const { get } = require('./ramda-utils')
-const { log } = require('../../console-tools')
+const { log, getJSON } = require('../../console-tools')
 
 const noop = () => undefined
 
@@ -16,20 +16,17 @@ const httpError = ({
   // used if retryAfterGetter func retunrs nothing
   backoffMs = 1000,
   // multiplies backoffMs on attempt number
-  exponentialBackoff = false
+  exponentialBackoff = false,
 }) => errorsObservable =>
   // maxRetries + 1 is used so we can get into retry code after last attempt
   // and fail accordingly
   Rx.Observable.range(1, maxRetries + 1)
     // combine errors observable (enhanced with logging) with range observable
-    .zip(
-      errorsObservable,
-      (i, err) => ({
-        attempt: i,
-        retryAfterMs: retryAfterGetter(err) || backoffMs,
-        err,
-      })
-    )
+    .zip(errorsObservable, (i, err) => ({
+      attempt: i,
+      retryAfterMs: retryAfterGetter(err) || backoffMs,
+      err,
+    }))
     // waiting for "inner" observable before re-trying "outer" one
     // mergeMap is same as flatMap
     .mergeMap(x => {
@@ -37,13 +34,17 @@ const httpError = ({
         ? x.retryAfterMs * x.attempt
         : x.retryAfterMs
       const err = x.err
+      const totalAttempts = maxRetries + 1
 
       if (x.attempt > maxRetries) {
         log.fail(
-          `[${get('response.statusCode', err) || ''}] ${get('request.url', err)} ` +
-            `failed after ${maxRetries} attempts with error: ${get('message', err)}`
+          `[${get('response.statusCode', err) || ''}] ${get('request.url', err)}` +
+            `, failed after ${totalAttempts} total attempts`,
         )
-        log.error(err.stack || 'No stack, logging entire error object instead: \n' + err)
+        log.error(
+          err.stack ||
+            'No stack, logging entire error object instead: \n' + getJSON(err, 1),
+        )
         // using Observable.throw would stop emittion so if multiple observables are
         // in re-try phase that would only throw once
         // return Rx.Observable.throw(err)
@@ -56,12 +57,13 @@ const httpError = ({
 
       log.warn(
         `[${get('response.statusCode', err) || ''}] ${get('request.url', err)}` +
-          `, retrying after ${retryAfter}ms, ` + `attempt ${x.attempt}/${maxRetries}`
+          `, failed, attempt ${x.attempt}/${totalAttempts}` +
+          `, retrying after ${retryAfter}ms`,
       )
 
       return Rx.Observable.timer(retryAfter)
     })
 
 module.exports = {
-  httpError
+  httpError,
 }
