@@ -12,7 +12,7 @@ const { rnd } = require('./utils/rnd')
 
 const buildRequest = require('../build-request')
 const {
-  buildRequestWithRotatingUserAgent,
+  buildRequestWithRotatingUserAgent
 } = require('../build-request-with-rotating-user-agent')
 const requestWithoutCookies = buildRequest({ useCookies: false })
 const O = Rx.Observable
@@ -41,13 +41,13 @@ const createScraper = ({
   successStatusCodes = [200],
   proxyUrl = '',
   headers = {},
-  writeResultsToFile = false,
+  writeResultsToFile = false
 }) => {
   const httpGet = buildRequestWithRotatingUserAgent({
     request,
     successStatusCodes,
     proxyUrl,
-    headers,
+    headers
   })
 
   let successCount = 0
@@ -57,77 +57,80 @@ const createScraper = ({
     if (urlsGenerator && !scrapeWhile) {
       throw new Error(
         '"scrapeWhile" parameter is required when using an url generator function' +
-          'otherwise scraping will not know where to stop and will run forever',
+          'otherwise scraping will not know where to stop and will run forever'
       )
     }
 
-
-    // second parameter is required  in case of generator function
-    // so observable starts, by default it doesn't start when using generator funcitons
-    // withough "take"
-    return urlsWithContext
-      ? O.from(urlsWithContext)
-      : O.from(urlsGenerator(), Rx.Scheduler.async)
-          .mergeMap(
-            ({ url }) =>
-              O.of(url)
-                .flatMap(url => httpGet(url))
-                .delay(randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
-                .retryWhen(
-                  httpError({
-                    maxRetries: retryAttempts,
-                    backoffMs: retryBackoffMs,
-                    exponentialBackoff: exponentialRetryBackoff,
-                    onFinalRetryFail: () => (failedCount += 1),
-                  }),
-                ),
-            // result selector, defines shape of the observable data passed further
-            (url, response) => ({ response, urlWithContext: url }),
-            concurrency,
+    // second parameter is required in case of generator function so observable
+    // starts immediately, by default it doesn't start when using generator
+    // funcitons withough "take", since it uses "queue" scheduler
+    // more about schedulers https://github.com/ReactiveX/rxjs/blob/master/doc/scheduler.md#scheduler-types
+    return (
+      (urlsWithContext
+        ? O.from(urlsWithContext)
+        : O.from(urlsGenerator(), Rx.Scheduler.asap)
+      )
+        .mergeMap(
+          ({ url }) =>
+            O.of(url)
+              .flatMap(url => httpGet(url))
+              .delay(randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
+              .retryWhen(
+                httpError({
+                  maxRetries: retryAttempts,
+                  backoffMs: retryBackoffMs,
+                  exponentialBackoff: exponentialRetryBackoff,
+                  onFinalRetryFail: () => (failedCount += 1)
+                })
+              ),
+          // result selector, defines shape of the observable data passed further
+          (url, response) => ({ response, urlWithContext: url }),
+          concurrency
+        )
+        .takeWhile(scrapeWhile)
+        .do(({ response, urlWithContext }) =>
+          log.done(
+            `[${response.statusCode}] ${urlWithContext.url}` +
+              ` ${chalk.gray(response.timeToCompleteMs + 'ms')}`
           )
-          .takeWhile(scrapeWhile)
-          .do(({ response, urlWithContext }) =>
-            log.done(
-              `[${response.statusCode}] ${urlWithContext.url}` +
-                ` ${chalk.gray(response.timeToCompleteMs + 'ms')}`,
-            ),
-          )
-          .map(scrapingFunc)
-          .do(() => (successCount += 1))
-          .reduce((results, currentResults) => {
-            if (!Array.isArray(results)) {
-              throw new Error(
-                "Scraping function must return an array, but it didn't. " +
-                  `Instead returned value was: "${currentResults}"`,
-              )
-            }
+        )
+        .map(scrapingFunc)
+        .do(() => (successCount += 1))
+        .reduce((results, currentResults) => {
+          if (!Array.isArray(results)) {
+            throw new Error(
+              "Scraping function must return an array, but it didn't. " +
+                `Instead returned value was: "${currentResults}"`
+            )
+          }
 
-            return results.concat(currentResults)
-          })
-          // side-effects
-          .do(results => {
-            if (results) {
-              const totalCount = successCount + failedCount
+          return results.concat(currentResults)
+        })
+        // side-effects
+        .do(results => {
+          if (results) {
+            const totalCount = successCount + failedCount
 
-              console.log(
-                chalk`Total/succeded/failed: {white ${totalCount}} = {green ${successCount}}` +
-                  (failedCount === 0
-                    ? chalk` + {gray ${failedCount}}`
-                    : chalk` + {rgb(255,70,0) ${failedCount}}`),
-              )
-            } else {
-              log.info('Results were null or undefined after scraping.')
-            }
+            console.log(
+              chalk`Total/succeded/failed: {white ${totalCount}} = {green ${successCount}}` +
+                (failedCount === 0
+                  ? chalk` + {gray ${failedCount}}`
+                  : chalk` + {rgb(255,70,0) ${failedCount}}`)
+            )
+          } else {
+            log.info('Results were null or undefined after scraping.')
+          }
 
-            if (writeResultsToFile) {
-              return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
-                .then(fileName => log.done(`Saved results to "data/${fileName}"`))
-                .then(() => results)
-            }
-          })
+          if (writeResultsToFile) {
+            return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
+              .then(fileName => log.done(`Saved results to "data/${fileName}"`))
+              .then(() => results)
+          }
+        })
+    )
   }
 }
 
 module.exports = {
-  createScraper,
+  createScraper
 }
