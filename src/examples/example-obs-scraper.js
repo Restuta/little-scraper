@@ -35,7 +35,7 @@ const scrape = createScraper({
     const responseBody = response.body
     return responseBody !== '8'
   },
-  concurrency: 1,
+  concurrency: 3,
   delay: 1000,
   retryAttempts: 2,
   retryBackoffMs: 200,
