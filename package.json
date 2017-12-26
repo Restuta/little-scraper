@@ -2,21 +2,13 @@
   "name": "little-scraper",
   "version": "2.0.4",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
-  "bin": {
-    "little-scraper": "./bin/index.js"
-  },
-  "yarn": "./dist/lib.js",
   "files": [
-    "dist",
-    "src/lib",
     "index.js",
-    ".babelrc",
     "README.md"
   ],
   "directories": {
     "config": "./config",
     "src": "./src",
-    "lib": "./src/lib"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production",
@@ -68,7 +60,7 @@
     ]
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.0.0"
   },
   "dependencies": {
     "bluebird": "^3.4.0",
