@@ -66,8 +66,9 @@ async function runScraping() {
 
 
 
-  // await scrape({fromUrls: createUrls(10)}).subscribe(results => log.json(results))
-  await scrape({fromUrlsGenerator: generateUrls}).subscribe(results => log.json(results))
+  // await scrape({fromUrls: createUrls(10)})
+  await scrape({fromUrlsGenerator: generateUrls})
+  console.info('done')
 
   // const Rx = require('rxjs/Rx')
   // const O = Rx.Observable

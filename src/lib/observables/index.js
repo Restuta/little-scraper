@@ -127,9 +127,12 @@ const createScraper = ({
               .then(() => results)
           }
         })
+        .toPromise()
     )
   }
 }
+
+
 
 module.exports = {
   createScraper
