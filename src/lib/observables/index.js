@@ -9,6 +9,7 @@ const { logHttpErrorForObservable } = require('./utils/console-utils')
 const { get } = require('./utils/ramda-utils')
 const { httpError } = require('./utils/rx-utils')
 const { rnd } = require('./utils/rnd')
+const { writeJsonToFile } = require('./utils/file-utils')
 
 const buildRequest = require('../build-request')
 const {
