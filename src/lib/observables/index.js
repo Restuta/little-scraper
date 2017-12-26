@@ -43,8 +43,13 @@ const createScraper = ({
   proxyUrl = '',
   headers = {},
   writeResultsToFile = false,
+  fileName,
   logProgress = true,
 }) => {
+  if (writeResultsToFile && !fileName) {
+    throw new Error('"fileName" must be provided when "writeResultsToFile" is true')
+  }
+
   const httpGet = buildRequestWithRotatingUserAgent({
     request,
     successStatusCodes,
@@ -124,9 +129,8 @@ const createScraper = ({
           }
 
           if (writeResultsToFile) {
-            return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
+            writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
               .then(fileName => log.done(`Saved results to "data/${fileName}"`))
-              .then(() => results)
           }
         })
         .toPromise()
