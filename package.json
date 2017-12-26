@@ -8,7 +8,7 @@
   ],
   "directories": {
     "config": "./config",
-    "src": "./src",
+    "src": "./src"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production",
