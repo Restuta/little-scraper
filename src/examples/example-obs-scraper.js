@@ -39,6 +39,7 @@ const scrape = createScraper({
   delay: 1000,
   retryAttempts: 2,
   retryBackoffMs: 200,
+  logProgress: true,
   // proxyUrl: 'http://open.proxymesh.com:31280',
   // proxyUrl: 'http://us-wa.proxymesh.com:31280',
   headers: {

@@ -42,7 +42,8 @@ const createScraper = ({
   successStatusCodes = [200],
   proxyUrl = '',
   headers = {},
-  writeResultsToFile = false
+  writeResultsToFile = false,
+  logProgress = true,
 }) => {
   const httpGet = buildRequestWithRotatingUserAgent({
     request,
@@ -90,7 +91,7 @@ const createScraper = ({
         )
         .takeWhile(scrapeWhile)
         .do(({ response, urlWithContext }) =>
-          log.done(
+          logProgress && log.done(
             `[${response.statusCode}] ${urlWithContext.url}` +
               ` ${chalk.gray(response.timeToCompleteMs + 'ms')}`
           )
@@ -113,7 +114,7 @@ const createScraper = ({
             const totalCount = successCount + failedCount
 
             console.log(
-              chalk`Total/succeded/failed: {white ${totalCount}} = {green ${successCount}}` +
+              chalk`Total = succeded + failed: {white ${totalCount}} = {green ${successCount}}` +
                 (failedCount === 0
                   ? chalk` + {gray ${failedCount}}`
                   : chalk` + {rgb(255,70,0) ${failedCount}}`)
