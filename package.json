@@ -1,15 +1,12 @@
 {
   "name": "little-scraper",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Little Node Scraper with simple by powerful async flow control goodness",
   "files": [
     "index.js",
-    "README.md"
+    "README.md",
+    "src"
   ],
-  "directories": {
-    "config": "./config",
-    "src": "./src"
-  },
   "scripts": {
     "build": "cross-env NODE_ENV=production",
     "dev": "nodemon index.dev.js --ext js",
