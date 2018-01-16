@@ -5,7 +5,9 @@ const chalk = require('chalk')
 
 const util = require('util')
 
-const preProcessMessage = function(message) {
+const preProcessMessage = function(msg) {
+  let message = msg
+
   if (message === undefined) {
     return 'undefined'
   }
@@ -21,46 +23,53 @@ const preProcessMessage = function(message) {
   return message
 }
 
-const info = function(message) {
-  message = preProcessMessage(message)
+const info = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.white(message))
 }
 
 // use to just log an error, where app can continue running, use "fail" to log critical error that
 // blocks execution
-const error = function(message) {
-  message = preProcessMessage(message)
+const error = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.red('× ') + chalk.red(message))
 }
 
-const dataError = function(message) {
-  message = preProcessMessage(message)
+const dataError = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.red('Data Error: ') + chalk.cyan(message))
 }
 
-const debug = function(message) {
-  message = preProcessMessage(message)
+const debug = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.blue(message))
 }
 
-const done = function(message) {
-  message = preProcessMessage(message)
+const done = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.green('\t✓ ') + chalk.white(message))
 }
 
-const doneBut = function(message) {
-  message = preProcessMessage(message)
+const doneBut = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.yellow('\t✓ ') + chalk.grey(message))
 }
 
-const warn = function(message) {
-  message = preProcessMessage(message)
+const warn = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.yellow('\t○ ') + chalk.grey(message))
 }
 
-const fail = function(message) {
-  message = preProcessMessage(message)
+const fail = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.red('\t× ') + chalk.grey(message))
+}
+
+const getJSON = function(object, depth = 2) {
+  return util.inspect(object, {
+    depth: depth,
+    colors: true,
+  })
 }
 
 const json = function(object, depth = 2) {
@@ -68,18 +77,9 @@ const json = function(object, depth = 2) {
   console.log(chalk.white(json))
 }
 
-const task = function(message) {
-  message = preProcessMessage(message)
+const task = function(msg) {
+  const message = preProcessMessage(msg)
   console.log(chalk.yellow('★ ') + chalk.white(message))
-}
-
-/* utility methods */
-
-const getJSON = function(object, depth = 2) {
-  return util.inspect(object, {
-    depth: depth,
-    colors: true
-  })
 }
 
 const log = {
@@ -92,7 +92,7 @@ const log = {
   warn,
   fail,
   json,
-  task
+  task,
 }
 
 module.exports = { log, getJSON }
