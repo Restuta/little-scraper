@@ -33,19 +33,22 @@ const scrape = createScraper({
   scrapingFunc: getNumber,
   scrapeWhile: ({ response, urlWithContext }) => {
     const responseBody = response.body
-    return responseBody !== '8'
+    // log.debug('response.body: ' + response.body)
+    return responseBody !== ''
   },
-  concurrency: 3,
-  delay: 1000,
+  concurrency: 5,
+  delay: 500,
   retryAttempts: 2,
   retryBackoffMs: 200,
+  randomizeDelay: true,
   logProgress: true,
+  logHttpRequests: true,
   // proxyUrl: 'http://open.proxymesh.com:31280',
   // proxyUrl: 'http://us-wa.proxymesh.com:31280',
   headers: {
-    'X-ProxyMesh-Country': 'RU',
+    'X-ProxyMesh-Country': 'RU'
     // 'Proxy-Authorization': 'Basic ' + new Buffer('restuta8@gmail.com:<pwd>').toString('base64')
-  },
+  }
 })
 
 async function runScraping() {
@@ -54,10 +57,27 @@ async function runScraping() {
       .fill('http://localhost:3456/numbers')
       .map((x, i) => ({ url: `${x}/${i + 1}` }))
 
+  function makeIterator(array) {
+    var nextIndex = 0
+
+    return {
+      [Symbol.iterator]() {
+        return {
+          next: function() {
+            console.info(chalk.grey('next() is called: ' + nextIndex))
+            return nextIndex < array.length
+              ? { value: array[nextIndex++], done: false }
+              : { done: true }
+          }
+        }
+      }
+    }
+  }
+
   const generateUrls = function*() {
     let i = 0
-    while(true) {
-      yield {url: `http://localhost:3456/numbers/${i++}`}
+    while (true) {
+      yield { url: `http://localhost:3456/numbers/${i++}`, _number: i }
     }
   }
 
@@ -65,43 +85,99 @@ async function runScraping() {
   // console.info(iterator.next().value)
   // console.info(iterator.next().value)
 
-
-
   // await scrape({fromUrls: createUrls(10)})
-  await scrape({fromUrlsGenerator: generateUrls})
+  const urlsIterator = generateUrls()
+  // // const urlsIterator = makeIterator(createUrls(100))
+  //
+  const results = await scrape({ fromUrlsIterator: urlsIterator })
+
+  log.info('results: ')
+  log.json(
+    results
+      .map(x => parseInt(x))
+      .filter(x => !isNaN(x))
+      .sort((a, b) => a - b)
+  )
   console.info('done')
 
+  // log.json(urlsIterator.next())
+
+  // const chalk = require('chalk')
   // const Rx = require('rxjs/Rx')
   // const O = Rx.Observable
   // const buildRequest = require('../lib/build-request')
+  // const {
+  //   buildRequestWithRotatingUserAgent
+  // } = require('../lib/build-request-with-rotating-user-agent')
+  //
   // const httpGet = url => {
   //   log.debug('HTTP: ' + url)
-  //   return buildRequest()(url)
+  //   return buildRequestWithRotatingUserAgent({
+  //     request: buildRequest({ useCookies: false }),
+  //     successStatusCodes: [200]
+  //   })(url)
   // }
   //
-  // O.from(generateUrls())
-  //   .take(10)
-  //   .delay(500)
-  //   .subscribe(x => log.json(x))
-
+  // const R = require('ramda')
+  // const { httpError } = require('../lib/observables/utils/rx-utils')
+  // const IteratorSubject = require('../lib/observables/iterator-subject')
   //
-  // O.from(createUrls(10))
+  //
+  // const urlEnumeratorSubject = new IteratorSubject(urlsIterator)
+  //
+  // const CONCURRENCY = 3
+  //
+  // const scrapeWhile = ({ response }) => {
+  //   return response.body !== ''
+  // }
+  //
+  // urlEnumeratorSubject
   //   .mergeMap(
   //     ({ url }) =>
   //       O.of(url)
   //         .flatMap(url => httpGet(url))
-  //         .delay(500),
-  //     (url, response) => response,
-  //     /* concurrencty */ 1,
+  //         .delay(100)
+  //         .retryWhen(
+  //           httpError({
+  //             maxRetries: 0,
+  //             backoffMs: 1000,
+  //             exponentialBackoff: true,
+  //             onFinalRetryFail: () => {
+  //               log.fail('final retry failed')
+  //               urlEnumeratorSubject.next()
+  //             }
+  //           })
+  //         ),
+  //     (urlWithContext, response) => ({ url: urlWithContext.url, response }),
+  //     /* concurrencty */ CONCURRENCY
   //   )
-  //   .takeWhile(response => response.body !== '3')
-  //   .do(response => log.debug(response.body))
-  //   .subscribe()
+  //   .do(({ url, response }) => {
+  //     if (scrapeWhile({ response })) {
+  //       log.info(' after flatMap: ' + url + ' ' + response.statusCode)
+  //       urlEnumeratorSubject.next()
+  //     } else {
+  //       log.info(
+  //         chalk.magenta(
+  //           ' after flatMap, stopping: ' + url + ' ' + response.statusCode
+  //         )
+  //       )
+  //       urlEnumeratorSubject.complete()
+  //     }
+  //
+  //     // emitNextUrlCreated()
+  //     //   emitNextItemFromIterator()
+  //   })
+  //   // .takeWhile(scrapeWhile)
+  //   .map(({ response }) => response.body)
+  //   .reduce((results, currentResults) => {
+  //     return results.concat(parseInt(currentResults))
+  //   }, [])
+  //   .subscribe(x => {
+  //     log.done('all emissions are done')
+  //     log.json(x.filter(x => !isNaN(x)).sort((a, b) => a - b))
+  //   })
+  //
+  // R.times(() => urlEnumeratorSubject.next(), CONCURRENCY)
 }
-
-// now when it's ready lets start crawling, its as simple as
-// scrape(createUrls()).then(log.json)
-
-// log.info('\n')
 
 module.exports = runScraping

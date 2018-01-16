@@ -5,10 +5,10 @@ const { startHttpServer } = require('./fake-http-server')
 
 async function main() {
   await startHttpServer()
-  runScraping()
+  await runScraping()
 }
 
-main()
+main().catch(console.log)
 
 //
 // function *getNextUrl() {
