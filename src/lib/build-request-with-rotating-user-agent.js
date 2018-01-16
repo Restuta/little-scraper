@@ -25,7 +25,7 @@ const buildRequestWithRotatingUserAgent = ({
   request,
   successStatusCodes,
   proxyUrl,
-  headers
+  headers,
 }) => async url => {
   // console.dir(url, { colors: true, depth: 4 })
   const userAgents = [
@@ -38,31 +38,32 @@ const buildRequestWithRotatingUserAgent = ({
     'Mozilla/5.0 (X11; OpenBSD amd64; rv:28.0) Gecko/20100101 Firefox/28.0',
     'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko',
     'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 7.0; InfoPath.3; .NET CLR 3.1.40767; Trident/6.0; en-IN)',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
   ]
   const options = {
     url: url,
     headers: {
       'User-Agent': userAgents[rnd(0, userAgents.length - 1)],
-      ...headers
+      ...headers,
       // 'Proxy-Authorization': 'Basic ' + new Buffer('restuta8@gmail.com:<pwd>').toString('base64')
     },
-    proxy: proxyUrl
+    proxy: proxyUrl,
   }
 
   let response
   try {
-    const from = + new Date()
+    const from = +new Date()
 
     response = await request(url, options)
 
-    const to = + new Date()
+    const to = +new Date()
     const requestTookMs = to - from
 
     if (!successStatusCodes.includes(response.statusCode)) {
       throw createHttpError(
-        `${response.body} \n Request status code was "${response.statusCode}", but should be one` +
-          ` of [${successStatusCodes}]`,
+        `${response.body} \n Request status code was "${
+          response.statusCode
+        }", but should be one` + ` of [${successStatusCodes}]`,
         options,
         response
       )
@@ -78,5 +79,5 @@ const buildRequestWithRotatingUserAgent = ({
 }
 
 module.exports = {
-  buildRequestWithRotatingUserAgent
+  buildRequestWithRotatingUserAgent,
 }

@@ -4,11 +4,11 @@ const prettier = require('prettier')
 /* Wrappers for node-fs function that return promises and write JSON to files
 */
 
-function writeJsonToFile (file, obj, options = {}) {
-  let spaces = typeof options === 'object' && options !== null
-    ? 'spaces' in options
-    ? options.spaces : this.spaces
-    : this.spaces
+function writeJsonToFile(file, obj, options = {}) {
+  let spaces =
+    typeof options === 'object' && options !== null
+      ? 'spaces' in options ? options.spaces : this.spaces
+      : this.spaces
 
   return new Promise((resolve, reject) => {
     let str = ''
@@ -20,19 +20,21 @@ function writeJsonToFile (file, obj, options = {}) {
       reject(err)
     }
 
-    fs.writeFile(file, str, options, (err) => {
-      if (err) reject(err)
+    fs.writeFile(file, str, options, err => {
+      if (err) {
+        reject(err)
+      }
 
       resolve(file)
     })
   })
 }
 
-function appendJsonToFile (file, obj, options, callback) {
-  let spaces = typeof options === 'object' && options !== null
-    ? 'spaces' in options
-    ? options.spaces : this.spaces
-    : this.spaces
+function appendJsonToFile(file, obj, options, callback) {
+  let spaces =
+    typeof options === 'object' && options !== null
+      ? 'spaces' in options ? options.spaces : this.spaces
+      : this.spaces
 
   return new Promise((resolve, reject) => {
     let str = ''
@@ -44,8 +46,10 @@ function appendJsonToFile (file, obj, options, callback) {
       reject(err)
     }
 
-    fs.appendFile(file, str, options, (err) => {
-      if (err) reject(err)
+    fs.appendFile(file, str, options, err => {
+      if (err) {
+        reject(err)
+      }
 
       resolve(file)
     })
@@ -54,5 +58,5 @@ function appendJsonToFile (file, obj, options, callback) {
 
 module.exports = {
   writeJsonToFile,
-  appendJsonToFile
+  appendJsonToFile,
 }

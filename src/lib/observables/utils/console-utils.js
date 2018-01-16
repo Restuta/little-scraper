@@ -19,5 +19,5 @@ module.exports = {
   logInfo,
   logBlue,
   logYellow,
-  logHttpErrorForObservable
+  logHttpErrorForObservable,
 }

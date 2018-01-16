@@ -103,10 +103,13 @@ const buildScraper = ({
           .delay(
             index === 0
               ? 0 // no delay for very first request
-              : randomizeDelay ? rnd(delay / 2, delay * 2) : delay,
+              : randomizeDelay ? rnd(delay / 2, delay * 2) : delay
           )
           .then(response =>
-            scrapingFunc({ response: response, urlWithContext: urlWithContext }),
+            scrapingFunc({
+              response: response,
+              urlWithContext: urlWithContext,
+            })
           )
           // after we got data from every url we can do something, e.g. append it to file as
           // intermediate result
@@ -120,14 +123,14 @@ const buildScraper = ({
               return data
             }
           }),
-      { concurrency: concurrency },
+      { concurrency: concurrency }
     )
       // combining results into one array after all async execution is done
       .reduce((results, currentResults) => {
         if (!_.isArray(results)) {
           throw new Error(
             "Scraping function must return an array, but it didn't. " +
-              `Instead returned value was: "${currentResults}"`,
+              `Instead returned value was: "${currentResults}"`
           )
         }
 
@@ -142,7 +145,9 @@ const buildScraper = ({
         }
 
         if (writeResultsToFile) {
-          return writeJsonToFile(`data/${fileName}.json`, results, { spaces: 2 })
+          return writeJsonToFile(`data/${fileName}.json`, results, {
+            spaces: 2,
+          })
             .then(fileName => log.done(`Saved results to "data/${fileName}"`))
             .then(() => results)
         }
@@ -154,7 +159,7 @@ const buildScraper = ({
           if (err.stack.lines) {
             const newStack = _.map(
               err.stack.lines(),
-              (line, index) => '\t\t' + line.trim(),
+              (line, index) => '\t\t' + line.trim()
             ).join('\n')
 
             log.fail(err.name + ', stack:\n ' + newStack)
