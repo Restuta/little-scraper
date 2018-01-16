@@ -11,7 +11,11 @@
     "build": "cross-env NODE_ENV=production",
     "dev": "nodemon index.dev.js --ext js",
     "prestart": "npm run build",
+    "eslint": "eslint src/ --ext .js || true",
+    "eslint:fix": "eslint src/ --ext .js --fix || true",
     "start": "node index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "reinstall": "rimraf node_modules && yarn",
     "release:patch": "npm version patch && git push --all && git push --tags",
     "release:minor": "npm version minor && git push --all && git push --tags",
@@ -33,28 +37,19 @@
   },
   "homepage": "https://github.com/Restuta/little-scraper#readme",
   "devDependencies": {
-    "babel-core": "^6.22.1",
-    "babel-eslint": "^7.1.1",
     "cheerio": "^0.22.0",
     "cross-env": "^3.1.4",
+    "eslint": "^4.15.0",
+    "eslint-plugin-prettier": "^2.4.0",
     "express": "^4.16.2",
+    "jest": "^22.0.6",
     "jsverify": "^0.7.4",
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
     "np": "^2.16.0",
     "prettier": "^1.9.2",
     "rimraf": "^2.6.0",
-    "snazzy": "^6.0.0",
-    "source-map-support": "^0.4.11",
-    "standard": "^8.6.0"
-  },
-  "standard": {
-    "parser": "babel-eslint",
-    "globals": [
-      "DEV",
-      "PROD",
-      "TEST"
-    ]
+    "source-map-support": "^0.4.11"
   },
   "engines": {
     "node": ">=8.0.0"

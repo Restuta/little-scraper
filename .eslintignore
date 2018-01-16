@@ -1,0 +1,4 @@
+bower_components/
+bower.json
+package.json
+src/token/__do-not-commit-me__.js
