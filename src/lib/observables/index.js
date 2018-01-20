@@ -74,32 +74,8 @@ const createScraper = ({
       )
     }
 
-    // log.json(urlsIterator.next())
-
     let successCount = 0
     let failedCount = 0
-
-    function printSummary(results) {
-      if (results) {
-        const totalCount = successCount + failedCount
-
-        console.log(
-          chalk`Total = succeded + failed: ` +
-            chalk`{white ${totalCount}} = {green ${successCount}}` +
-            (failedCount === 0
-              ? chalk` + {gray ${failedCount}}`
-              : chalk` + {rgb(255,70,0) ${failedCount}}`)
-        )
-      } else {
-        log.info('Results were null or undefined after scraping.')
-      }
-    }
-
-    async function writeResultsToJsonFile(results) {
-      return writeJsonToFile(`data/${fileName}.json`, results, {
-        spaces: 2,
-      }).then(fileName => log.done(`Saved results to "data/${fileName}"`))
-    }
 
     const fromUrlsIterator = (urlsIterator, scrapeWhile) => {
       const urlsIteratorSubject = new IteratorSubject(urlsIterator)
@@ -127,6 +103,11 @@ const createScraper = ({
           concurrency
         )
         .do(({ response, urlWithContext }) => {
+          // this is the meat of this approach, we notifiy RxIteratorSubject to emit next item
+          // which means "pull next item from iteratable" and since we subscribed to that very
+          // RxIteratorSubject we get an observable running that is capable of producing values
+          // while running. It's a simulation of a "pull model" that allows to use all the powerful
+          // coordination primitives that RxJs provides.
           if (scrapeWhile({ response })) {
             urlsIteratorSubject.next()
           } else {
@@ -165,11 +146,15 @@ const createScraper = ({
           return results.concat(currentResults)
         })
         // side-effects
-        .do(printSummary)
+        .do(results => printSummary(results, successCount, failedCount))
         .toPromise()
-        .then(results => (writeResultsToFile ? writeResultsToJsonFile(results) : results))
+        .then(
+          results =>
+            writeResultsToFile ? writeResultsToJsonFile(results, fileName) : results
+        )
 
-      // kicks in urlsIteratorSubject observable
+      // kicks in urlsIteratorSubject observable N times equal to given concurrency so our "cold"
+      // observable starts
       R.times(() => urlsIteratorSubject.next(), concurrency)
 
       return scrapingPromise.then(x => ({
@@ -199,6 +184,28 @@ function makeIterator(array) {
       nextIndex < array.length
         ? { value: array[nextIndex++], done: false }
         : { done: true },
+  }
+}
+
+async function writeResultsToJsonFile(results, fileName) {
+  return writeJsonToFile(`data/${fileName}.json`, results, {
+    spaces: 2,
+  }).then(fileName => log.done(`Saved results to "data/${fileName}"`))
+}
+
+function printSummary(results, successCount, failedCount) {
+  if (results) {
+    const totalCount = successCount + failedCount
+
+    console.log(
+      chalk`Total = succeded + failed: ` +
+        chalk`{white ${totalCount}} = {green ${successCount}}` +
+        (failedCount === 0
+          ? chalk` + {gray ${failedCount}}`
+          : chalk` + {rgb(255,70,0) ${failedCount}}`)
+    )
+  } else {
+    log.info('Results were null or undefined after scraping.')
   }
 }
 
