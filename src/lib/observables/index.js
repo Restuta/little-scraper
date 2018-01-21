@@ -5,6 +5,8 @@
 const R = require('ramda')
 const Rx = require('rxjs/Rx')
 const chalk = require('chalk')
+const makeDir = require('make-dir')
+const path = require('path')
 
 const { log } = require('../console-tools')
 
@@ -187,10 +189,15 @@ function makeIterator(array) {
   }
 }
 
-async function writeResultsToJsonFile(results, fileName) {
-  return writeJsonToFile(`data/${fileName}.json`, results, {
-    spaces: 2,
-  }).then(fileName => log.done(`Saved results to "data/${fileName}"`))
+async function writeResultsToJsonFile(results, filePath) {
+  const fullFilePath = `data/${filePath}.json`
+  const dirName = path.dirname(fullFilePath)
+
+  return makeDir(dirName).then(() =>
+    writeJsonToFile(fullFilePath, results, {
+      spaces: 2,
+    }).then(fileName => log.done(`Saved results to "data/${fileName}"`))
+  )
 }
 
 function printSummary(results, successCount, failedCount) {
