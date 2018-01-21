@@ -152,7 +152,9 @@ const createScraper = ({
         .toPromise()
         .then(
           results =>
-            writeResultsToFile ? writeResultsToJsonFile(results, fileName) : results
+            writeResultsToFile
+              ? writeResultsToJsonFile(results, fileName).then(() => results)
+              : results
         )
 
       // kicks in urlsIteratorSubject observable N times equal to given concurrency so our "cold"
