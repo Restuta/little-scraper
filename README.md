@@ -1,4 +1,4 @@
-# Little Scraper That Could
+# Little Scraper That Could 🚂
 Little Node Scraper with simple but powerful async flow control goodness. Batteries included, features:
 * retries falied requests with exponnetial backoff
 * configurable parallization
