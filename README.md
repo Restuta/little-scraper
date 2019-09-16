@@ -1,8 +1,8 @@
 # Little Scraper That Could 🚂
 Little Node Scraper with simple but powerful async flow control goodness. Batteries included, features:
-* retries falied requests with exponnetial backoff
-* configurable parallization
-* randomized delays for non uniform load
+* retries falied requests with exponential backoff
+* configurable parallelization
+* randomized delays for non-uniform load
 * browswer headers rotation to appear as a client browser 
 * proxy support
 * 👑 the only library with support of generator functions as a source of urls. (Useful for APIs or websites that use pagination, but won't tell you what is the last page.)
