@@ -2,6 +2,7 @@
 // TODO:  there is a big bug with "takeWhile" it would discard all results in a
 // concurrent chunk if first result happen to meet takeWhile condition
 
+const P = require('bluebird')
 const R = require('ramda')
 const Rx = require('rxjs/Rx')
 const chalk = require('chalk')
@@ -51,6 +52,8 @@ const createScraper = ({
   logProgress = true,
   logHttpRequests = false,
 }) => {
+  const getDelay = () => (randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
+
   if (writeResultsToFile && !fileName) {
     throw new Error('"fileName" must be provided when "writeResultsToFile" is true')
   }
@@ -87,7 +90,7 @@ const createScraper = ({
           ({ url }) =>
             O.of(url)
               .flatMap(url => httpGet(url))
-              .delay(randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
+              .delay(getDelay())
               .retryWhen(
                 httpError({
                   maxRetries: retryAttempts,
@@ -161,7 +164,13 @@ const createScraper = ({
 
       // kicks in urlsIteratorSubject observable N times equal to given concurrency so our "cold"
       // observable starts
-      R.times(() => urlsIteratorSubject.next(), concurrency)
+      for (let i = 0; i < concurrency; i++) {
+        if (i !== 0) {
+          P.delay(getDelay())
+        }
+
+        urlsIteratorSubject.next()
+      }
 
       return scrapingPromise.then(x => ({
         data: x,

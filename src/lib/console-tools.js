@@ -47,22 +47,22 @@ const debug = function(msg) {
 
 const done = function(msg) {
   const message = preProcessMessage(msg)
-  console.log(chalk.green('\t✓ ') + chalk.white(message))
+  console.log(chalk.green('✓ ') + chalk.white(message))
 }
 
 const doneBut = function(msg) {
   const message = preProcessMessage(msg)
-  console.log(chalk.yellow('\t✓ ') + chalk.grey(message))
+  console.log(chalk.yellow('✓ ') + chalk.grey(message))
 }
 
 const warn = function(msg) {
   const message = preProcessMessage(msg)
-  console.log(chalk.yellow('\t○ ') + chalk.grey(message))
+  console.log(chalk.yellow('○ ') + chalk.grey(message))
 }
 
 const fail = function(msg) {
   const message = preProcessMessage(msg)
-  console.log(chalk.red('\t× ') + chalk.grey(message))
+  console.log(chalk.red('× ') + chalk.grey(message))
 }
 
 const getJSON = function(object, depth = 2) {
