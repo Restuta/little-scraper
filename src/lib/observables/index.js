@@ -11,7 +11,7 @@ const path = require('path')
 const { log } = require('../console-tools')
 
 const { httpError } = require('./utils/rx-utils')
-const { rnd } = require('./utils/rnd')
+const { rnd } = require('../utils/rnd')
 const { writeJsonToFile } = require('./utils/file-utils')
 const IteratorSubject = require('./iterator-subject')
 

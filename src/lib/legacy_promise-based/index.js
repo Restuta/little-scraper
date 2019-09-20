@@ -1,15 +1,15 @@
 const moment = require('moment')
 const _ = require('lodash')
 const Bluebird = require('bluebird')
-const buildRequest = require('./build-request')
+const buildRequest = require('../build-request')
 const retry = require('./retry')
-const { rnd } = require('./utils/rnd')
+const { rnd } = require('../utils/rnd')
 const {
   buildRequestWithRotatingUserAgent,
 } = require('./build-request-with-rotating-user-agent')
 
-const { appendJsonToFile, writeJsonToFile } = require('./file-utils')
-const { log } = require('./console-tools')
+const { appendJsonToFile, writeJsonToFile } = require('../file-utils')
+const { log } = require('../console-tools')
 // Bluebird.longStackTraces() //Long stack traces imply a substantial performance penalty,
 // around 4-5x for throughput and 0.5x for latency.
 

@@ -26,7 +26,7 @@ const getNumber = ({ response, urlWithContext }) => {
 
 // #3 lets configure scraper and run it
 
-const { createScraper } = require('../lib/observables')
+const createScraper = require('../lib/observables')
 const { uniq } = require('lodash/fp')
 
 const scrape = createScraper({
