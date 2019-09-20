@@ -37,8 +37,8 @@ const createScraper = ({
   retryBackoffMs = 1000,
   // retryAttempt * retryBackoffMs
   exponentialRetryBackoff = true,
-  // a function that accetps a number representing "totalPages"
-  // called whenever any progress is made (URL is finished fetching)
+  // a function that is called whenever any progress is made (URL is finished fetching)
+  // accepts results with context or error in arguments
   onProgress = R.identity,
   // a function that can fetch URL
   request = requestWithoutCookies,
@@ -94,7 +94,8 @@ const createScraper = ({
                   backoffMs: retryBackoffMs,
                   exponentialBackoff: exponentialRetryBackoff,
                   logProgress,
-                  onFinalRetryFail: () => {
+                  onFinalRetryFail: err => {
+                    onProgress(err)
                     failedCount += 1
                     urlsIteratorSubject.next()
                   },
@@ -130,10 +131,11 @@ const createScraper = ({
             }
           }
         })
-        .do(({ response }) => {
+        .do(({ response, urlWithContext }) => {
           // increment success count only when scrape while is defined
           if (scrapeWhile && scrapeWhile({ response })) {
             successCount += 1
+            onProgress({ response, urlWithContext })
           }
         })
         .map(scrapingFunc)
@@ -218,6 +220,4 @@ function printSummary(results, successCount, failedCount) {
   }
 }
 
-module.exports = {
-  createScraper,
-}
+module.exports = createScraper

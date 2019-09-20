@@ -20,7 +20,7 @@ const createUrlsForSlug = (number, slug) =>
     .fill(`http://localhost:31439${slug}`)
     .map((x, i) => ({ url: `${x}/${i}` }))
 
-const generateUrlsForSlug = function*(slug) {
+const generateUrlsForSlug = function* (slug) {
   let i = 0
   while (true) {
     yield { url: `http://localhost:31439${slug}/${i++}`, _number: i }

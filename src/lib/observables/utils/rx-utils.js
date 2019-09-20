@@ -53,7 +53,7 @@ const httpError = ({
         // can't access this from outside
         // return Rx.Observable.of('hello')
 
-        onFinalRetryFail()
+        onFinalRetryFail(err)
         return Rx.Observable.empty()
       }
 
