@@ -52,7 +52,8 @@ const createScraper = ({
   logProgress = true,
   logHttpRequests = false,
 }) => {
-  const getDelay = () => (randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
+
+  const getDelay = () => randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay
 
   if (writeResultsToFile && !fileName) {
     throw new Error('"fileName" must be provided when "writeResultsToFile" is true')
@@ -82,7 +83,7 @@ const createScraper = ({
     let successCount = 0
     let failedCount = 0
 
-    const fromUrlsIterator = (urlsIterator, scrapeWhile) => {
+    const fromUrlsIterator = async (urlsIterator, scrapeWhile) => {
       const urlsIteratorSubject = new IteratorSubject(urlsIterator)
 
       const scrapingPromise = urlsIteratorSubject
@@ -164,9 +165,11 @@ const createScraper = ({
 
       // kicks in urlsIteratorSubject observable N times equal to given concurrency so our "cold"
       // observable starts
+      // R.times(() => urlsIteratorSubject.next(), concurrency)
+
       for (let i = 0; i < concurrency; i++) {
         if (i !== 0) {
-          P.delay(getDelay())
+          await P.delay(getDelay())
         }
 
         urlsIteratorSubject.next()
