@@ -20,6 +20,7 @@ const buildRequest = require('../build-request')
 const {
   buildRequestWithRotatingUserAgent,
 } = require('../build-request-with-rotating-user-agent')
+
 const requestWithoutCookies = buildRequest({ useCookies: false })
 const O = Rx.Observable
 
@@ -29,7 +30,6 @@ const createScraper = ({
   // defines when to stop scraping, useful when generator function is used
   // to produce urls, infinte by default
   scrapeWhile = request => true,
-  createPagedUrl,
   concurrency = 3,
   delay = 1000,
   // would randomize given delay, so it's within [x/2, x*2] range
@@ -52,8 +52,7 @@ const createScraper = ({
   logProgress = true,
   logHttpRequests = false,
 }) => {
-
-  const getDelay = () => randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay
+  const getDelay = () => (randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
 
   if (writeResultsToFile && !fileName) {
     throw new Error('"fileName" must be provided when "writeResultsToFile" is true')
@@ -61,7 +60,7 @@ const createScraper = ({
 
   const httpGet = url => {
     if (logHttpRequests) {
-      console.log(chalk.gray('HTTP: ' + url))
+      console.log(chalk.gray(`HTTP: ${url}`))
     }
     return buildRequestWithRotatingUserAgent({
       request,
@@ -87,6 +86,10 @@ const createScraper = ({
       const urlsIteratorSubject = new IteratorSubject(urlsIterator)
 
       const scrapingPromise = urlsIteratorSubject
+        // convert URL that are just strings to "urlWithContext object"
+        .map(url => (R.type(url) === 'String' ? { url } : url))
+        // merge map allows to control concurrency and retries, produces multiple observables
+        // from single observable and merges them back to one
         .mergeMap(
           ({ url }) =>
             O.of(url)
@@ -125,12 +128,12 @@ const createScraper = ({
             if (scrapeWhile({ response, urlWithContext })) {
               log.done(
                 `[${response.statusCode}] ${urlWithContext.url}` +
-                  ` ${chalk.gray(response.timeToCompleteMs + 'ms')}`
+                  ` ${chalk.gray(`${response.timeToCompleteMs}ms`)}`
               )
             } else {
               log.doneBut(
                 `[${response.statusCode}] ${urlWithContext.url}` +
-                  ` ${chalk.gray(response.timeToCompleteMs + 'ms')}`
+                  ` ${chalk.gray(`${response.timeToCompleteMs}ms`)}`
               )
             }
           }
@@ -145,29 +148,24 @@ const createScraper = ({
         .map(scrapingFunc)
         .reduce((results, currentResults) => {
           if (!Array.isArray(results)) {
-            throw new Error(
-              "Scraping function must return an array, but it didn't. " +
-                `Instead returned value was: "${currentResults}"`
-            )
+            return results.concat([currentResults])
           }
 
           return results.concat(currentResults)
-        })
+        }, [])
         // side-effects
         .do(results => printSummary(results, successCount, failedCount))
         .toPromise()
-        .then(
-          results =>
-            writeResultsToFile
-              ? writeResultsToJsonFile(results, fileName).then(() => results)
-              : results
+        .then(results =>
+          writeResultsToFile
+            ? writeResultsToJsonFile(results, fileName).then(() => results)
+            : results
         )
 
       // kicks in urlsIteratorSubject observable N times equal to given concurrency so our "cold"
       // observable starts
-      // R.times(() => urlsIteratorSubject.next(), concurrency)
-
       for (let i = 0; i < concurrency; i++) {
+        // start first one immediately, but for others use delay
         if (i !== 0) {
           await P.delay(getDelay())
         }
@@ -175,10 +173,10 @@ const createScraper = ({
         urlsIteratorSubject.next()
       }
 
-      return scrapingPromise.then(x => ({
-        data: x,
-        failedCount: failedCount,
-        successCount: successCount,
+      return scrapingPromise.then(results => ({
+        data: results,
+        failedCount,
+        successCount,
       }))
     }
 
