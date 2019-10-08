@@ -50,6 +50,7 @@ const createScraper = ({
   writeResultsToFile = false,
   fileName,
   logProgress = true,
+  logSummary = true,
   logHttpRequests = false,
 }) => {
   const getDelay = () => (randomizeDelay ? rnd(delay / 1.5, delay * 1.5) : delay)
@@ -154,7 +155,13 @@ const createScraper = ({
           return results.concat(currentResults)
         }, [])
         // side-effects
-        .do(results => printSummary(results, successCount, failedCount))
+        .do(results => {
+          const totalCount = successCount + failedCount
+          if (totalCount === 1 || !logSummary) {
+            return
+          }
+          printSummary(results, successCount, failedCount)
+        })
         .toPromise()
         .then(results =>
           writeResultsToFile
