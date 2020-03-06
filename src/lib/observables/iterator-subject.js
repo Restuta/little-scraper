@@ -1,4 +1,4 @@
-const Rx = require('rxjs/Rx')
+const Rx = require('rxjs')
 
 /**
  * Respresents an Rx Subject that is tied to a provided iterator in it's constructor. Would
