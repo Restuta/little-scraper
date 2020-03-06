@@ -1,4 +1,4 @@
-const {map, flatMap, delay: rxjsDelay, retryWhen, mergeMap, tap, reduce} = require('rxjs/operators');
+const { map, flatMap, delay: rxjsDelay, retryWhen, mergeMap, tap, reduce } = require('rxjs/operators');
 // TODO: add writing to file (make this separate module?)
 // TODO:  there is a big bug with "takeWhile" it would discard all results in a
 // concurrent chunk if first result happen to meet takeWhile condition
@@ -87,19 +87,31 @@ const createScraper = ({
     const fromUrlsIterator = async (urlsIterator, scrapeWhile) => {
       const urlsIteratorSubject = new IteratorSubject(urlsIterator)
 
-      const scrapingPromise = urlsIteratorSubject.pipe(map(url => (R.type(url) === 'String' ? { url } : url)), mergeMap(({ url }) =>
-        Rx.of(url).pipe(flatMap(url => httpGet(url)), rxjsDelay(getDelay()), retryWhen(httpError({
-          maxRetries: retryAttempts,
-          backoffMs: retryBackoffMs,
-          exponentialBackoff: exponentialRetryBackoff,
-          logProgress,
-          onFinalRetryFail: err => {
-            onProgress(err)
-            failedCount += 1
-            urlsIteratorSubject.next()
-          },
-        }))), // result selector, defines shape of the observable data passed further
-      (urlWithContext, response) => ({ response, urlWithContext }), concurrency), tap(({ response, urlWithContext }) => {
+      const scrapingPromise = urlsIteratorSubject.pipe(
+        map(url => (R.type(url) === 'String' ? { url } : url)),
+        mergeMap(({ url }) =>
+          Rx.of(url).pipe(
+            flatMap(url => httpGet(url)),
+            rxjsDelay(getDelay()),
+            retryWhen(
+              httpError({
+                maxRetries: retryAttempts,
+                backoffMs: retryBackoffMs,
+                exponentialBackoff: exponentialRetryBackoff,
+                logProgress,
+                onFinalRetryFail: err => {
+                  onProgress(err)
+                  failedCount += 1
+                  urlsIteratorSubject.next()
+                },
+              })
+            )
+          ),
+          // result selector, defines shape of the observable data passed further
+          (urlWithContext, response) => ({ response, urlWithContext }),
+          concurrency
+        ),
+        tap(({ response, urlWithContext }) => {
           // this is the meat of this approach, we notifiy RxIteratorSubject to emit next item
           // which means "pull next item from iteratable" and since we subscribed to that very
           // RxIteratorSubject we get an observable running that is capable of producing values
@@ -124,19 +136,23 @@ const createScraper = ({
               )
             }
           }
-        }), tap(({ response, urlWithContext }) => {
+        }),
+        tap(({ response, urlWithContext }) => {
           // increment success count only when scrape while is defined
           if (scrapeWhile && scrapeWhile({ response })) {
             successCount += 1
             onProgress({ response, urlWithContext })
           }
-        }), map(scrapingFunc), reduce((results, currentResults) => {
+        }),
+        map(scrapingFunc),
+        reduce((results, currentResults) => {
           if (!Array.isArray(results)) {
             return results.concat([currentResults])
           }
 
           return results.concat(currentResults)
-        }, []), tap(results => {
+        }, []),
+        tap(results => {
           const totalCount = successCount + failedCount
           if (totalCount === 1 || !logSummary) {
             return
