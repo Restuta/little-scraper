@@ -1,5 +1,5 @@
 const chalk = require('chalk')
-const Rx = require('rxjs/Rx')
+const Rx = require('rxjs')
 
 const log = data => console.dir(data, { colors: true, depth: 4 })
 const logInfo = msg => console.log(chalk.cyan(msg))
@@ -11,7 +11,7 @@ const logHttpErrorForObservable = (err, caught) => {
   console.log(chalk.red(err))
   console.log(chalk.red('Response headers:'))
   console.dir(err.response.headers, { colors: true, depth: 4 })
-  return Rx.Observable.empty()
+  return Rx.empty();
 }
 
 module.exports = {
