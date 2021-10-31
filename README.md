@@ -3,7 +3,7 @@ Little Node Scraper with simple but powerful async flow control goodness. Batter
 * retries falied requests with exponential backoff
 * configurable parallelization
 * randomized delays for non-uniform load
-* browswer headers rotation to appear as a client browser 
+* browser headers rotation (to appear as a client browser)
 * proxy support
 * 👑 the only library with support of generator functions as a source of urls. (Useful for APIs or websites that use pagination, but won't tell you what is the last page.)
 * can save results to a JSON file (beta feature)
