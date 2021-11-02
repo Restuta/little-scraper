@@ -1,4 +1,5 @@
-const Rx = require('rxjs/Rx')
+const { zip, mergeMap } = require('rxjs/operators');
+const Rx = require('rxjs')
 const R = require('ramda')
 const { get } = require('./ramda-utils')
 const { log, getJSON } = require('../../console-tools')
@@ -23,16 +24,16 @@ const httpError = ({
 }) => errorsObservable =>
   // maxRetries + 1 is used so we can get into retry code after last attempt
   // and fail accordingly
-  Rx.Observable.range(1, maxRetries + 1)
+  Rx.range(1, maxRetries + 1).pipe(
     // combine errors observable (enhanced with logging) with range observable
-    .zip(errorsObservable, (i, err) => ({
+    zip(errorsObservable, (i, err) => ({
       attempt: i,
       retryAfterMs: retryAfterGetter(err) || backoffMs,
       err,
-    }))
+    })),
     // waiting for "inner" observable before re-trying "outer" one
     // mergeMap is same as flatMap
-    .mergeMap(x => {
+    mergeMap(x => {
       const retryAfter = exponentialBackoff ? x.retryAfterMs * x.attempt : x.retryAfterMs
       const err = x.err
       const totalAttempts = maxRetries + 1
@@ -54,7 +55,7 @@ const httpError = ({
         // return Rx.Observable.of('hello')
 
         onFinalRetryFail(err)
-        return Rx.Observable.empty()
+        return Rx.empty();
       }
 
       logProgress &&
@@ -64,8 +65,8 @@ const httpError = ({
             `, retrying after ${retryAfter}ms`
         )
 
-      return Rx.Observable.timer(retryAfter)
-    })
+      return Rx.timer(retryAfter);
+    }))
 
 module.exports = {
   httpError,
